@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="green">#6BCE89</color>
+    <color name="light_green">#369e4b</color>
+    <color name="grey">#B0B0B0</color>
+    <color name="blue">#83D8F3</color>
+    <color name="brown">#80461B</color>
+    <color name="reg_button_colour">#FDDDC7</color>
+    <color name="StatusBar_colour">#e7e9d4</color>
+    <color name="string_start_care">#313030</color>
+    <color name="ssc">#2C2C2C</color>
+    <color name="tabl">#757575</color>
+    <color name="menu">#edf2c8</color>
+    <color name="pink">#86E91E63</color>
+
+</resources>

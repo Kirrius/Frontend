@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Plant_care</string>
+    <string name="logo_text">Начните уход за своими растениями</string>
+    <string name="start">Начать</string>
+    <string name="title_activity_main_register">MainActivityRegister</string>
+    <string name="title_activity_main_menu">MainActivityMenu</string>
+    <string name="title_activity_main_activitymenu">MainActivitymenu</string>
+    <string name="title_activity_main_script">MainActivityScript</string>
+</resources>

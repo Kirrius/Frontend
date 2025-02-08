@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/iconn"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/iconn_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Plant_care"
+        tools:targetApi="31">
+        <activity
+            android:name=".MainActivityreadyscript2"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".MainActivityreadyscript"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".MainActivityScript"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.theme.MainActivityScript"
+            android:exported="false"
+            android:label="@string/title_activity_main_script"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Plant_care" />
+        <activity
+            android:name=".MainActivitymenu"
+            android:exported="false"
+            android:label="@string/title_activity_main_activitymenu"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Plant_care" />
+        <activity
+            android:name=".MainActivityMenu"
+            android:exported="false"
+            android:label="@string/title_activity_main_menu"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Plant_care" />
+        <activity
+            android:name=".ui.theme.MainActivityprofile"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".MainActivitylogin2"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".MainActivityLogin"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".MainActivity2"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
+    </application>
+
+</manifest>
