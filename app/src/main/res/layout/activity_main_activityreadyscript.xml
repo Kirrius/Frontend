@@ -47,7 +47,7 @@
         app:layout_constraintHorizontal_bias="0.076"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.513" />
+        app:layout_constraintVertical_bias="0.525" />
 
     <TextView
         android:id="@+id/textView13"
@@ -74,21 +74,21 @@
         app:layout_constraintTop_toBottomOf="@+id/textView8"
         app:layout_constraintVertical_bias="0.586" />
 
+
     <EditText
         android:id="@+id/editTextText2"
         android:layout_width="121dp"
-        android:layout_height="40dp"
-        android:textColor="@color/black"
+        android:layout_height="43dp"
         android:ems="10"
         android:inputType="text"
+        android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.305"
+        app:layout_constraintHorizontal_bias="0.303"
         app:layout_constraintStart_toStartOf="parent"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@+id/switch2"
-        app:layout_constraintVertical_bias="0.228" />
-
+        app:layout_constraintVertical_bias="0.244" />
 
     <EditText
         android:id="@+id/editTextText4"
@@ -99,7 +99,7 @@
         android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.342"
+        app:layout_constraintHorizontal_bias="0.303"
         app:layout_constraintStart_toStartOf="parent"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@+id/switch2"
@@ -114,7 +114,7 @@
         android:inputType="text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.342"
+        app:layout_constraintHorizontal_bias="0.303"
         app:layout_constraintStart_toStartOf="parent"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@+id/switch2"
@@ -122,18 +122,18 @@
 
     <EditText
         android:id="@+id/editTextText3"
-        android:layout_width="122dp"
-        android:layout_height="39dp"
-        android:textColor="@color/black"
+        android:layout_width="121dp"
+        android:layout_height="43dp"
         android:ems="10"
         android:inputType="text"
+        android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.303"
         app:layout_constraintStart_toStartOf="parent"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@+id/switch2"
-        app:layout_constraintVertical_bias="0.305" />
+        app:layout_constraintVertical_bias="0.327" />
 
     <TextView
         android:id="@+id/textView6"

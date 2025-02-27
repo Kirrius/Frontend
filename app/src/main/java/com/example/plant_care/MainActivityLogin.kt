@@ -49,8 +49,15 @@ class MainActivityLogin : AppCompatActivity() {
         submitButton.setOnClickListener {
             val email = emailEditText.text.toString()
             val pass = passEditText.text.toString()
-            val intent = Intent(this, MainActivityreadyscript::class.java)
+            val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+            editor.putString("Password", pass) // Сохраняем пароль
+            editor.apply()
+            /*
+            var intent = Intent(this, MainActivityreadyscript::class.java)
             intent.putExtra("Password", pass)
+
+             */
             register(email,pass)
         }
 
