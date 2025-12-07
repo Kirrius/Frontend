@@ -25,4 +25,9 @@ class MainActivitymenu : AppCompatActivity() {
         startActivity(intent)
     }
 
+    fun par(v: View) {
+        val intent = Intent(this, MainActivityParametr::class.java)
+        startActivity(intent)
+    }
+
 }

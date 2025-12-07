@@ -238,14 +238,14 @@
         android:id="@+id/imageButton9"
         android:layout_width="69dp"
         android:layout_height="66dp"
+        android:background="@null"
+        android:src="@drawable/__1__1_"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.923"
+        app:layout_constraintHorizontal_bias="0.953"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.912"
-        app:srcCompat="@drawable/strelkavpravo"
-        android:src="@drawable/strelkavpravo"
-        android:background="@null"/>
+        app:srcCompat="@drawable/__1__1_" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,6 +1,5 @@
 package com.example.plant_care
 
-import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
@@ -8,19 +7,34 @@ import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Switch
 import android.widget.Toast
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import java.io.IOException
 
 class MainActivitylogin2 : AppCompatActivity() {
     private lateinit var emailEditText2: EditText
-    private lateinit var passEditText2:  EditText
+    private lateinit var passEditText2: EditText
     private lateinit var submitButton: Button
     private lateinit var togglePasswordVisibilitySwitch2: Switch
+
+    // Адрес вашего локального сервера (поставьте ваш IP)
+    private val BASE_URL = "http://192.168.1.108:5000"
+
+    private val client = OkHttpClient()
+    private val sharedPreferences by lazy { getSharedPreferences("MyPrefs", MODE_PRIVATE) }
+    private val TAG = "MainActivitylogin2"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,55 +53,158 @@ class MainActivitylogin2 : AppCompatActivity() {
         }
 
         submitButton.setOnClickListener {
-            val email = emailEditText2.text.toString()
-            val pass = passEditText2.text.toString()
-            login(email,pass)
+            val email = emailEditText2.text.toString().trim()
+            val pass = passEditText2.text.toString().trim()
+            if (validateInput(email, pass)) {
+                login(email, pass)
+            }
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val systemBars = insets.getInsets(android.view.WindowInsets.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
     }
 
+    private fun validateInput(email: String, password: String): Boolean {
+        return when {
+            email.isBlank() || password.isBlank() -> {
+                showToast("Пожалуйста, заполните все поля")
+                false
+            }
+            else -> true
+        }
+    }
+
     private fun togglePasswordVisibility(isChecked: Boolean) {
-        if (isChecked) {
-            passEditText2.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        passEditText2.inputType = if (isChecked) {
+            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
         } else {
-            passEditText2.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
         passEditText2.setSelection(passEditText2.text.length)
     }
 
-    private fun login(email: String, password: String) {
-        // Проверка на пустые строки
-        if (email.isBlank() || password.isBlank()) {
-            Toast.makeText(this, "Пожалуйста, заполните все поля", Toast.LENGTH_SHORT).show()
-            return // Выход из функции, если поля пустые
-        }
-        if (password.length < 6){
-            Toast.makeText(this, "Введите пароль от 6 символов", Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (!email.contains("@")) {
-            Toast.makeText(this, "Введите корректный адрес почты", Toast.LENGTH_SHORT).show()
-            return // Выход из функции, если в строке почты нет символа "@"
-        }
+    fun register(v: View) {
+        startActivity(Intent(this, MainActivityLogin::class.java))
+    }
 
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    // Успешный вход, обновляем UI с информацией о пользователе
-                    Log.d(TAG, "signInWithEmail:success")
-                    val user = FirebaseAuth.getInstance().currentUser
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
-                } else {
-                    // Если вход не удался, отображаем сообщение пользователю
-                    Log.w(TAG, "signInWithEmail:failure", task.exception)
-                    Toast.makeText(this, "Не удалось войти в аккаунт", Toast.LENGTH_SHORT).show()
+    private fun login(email: String, password: String) {
+        lifecycleScope.launch {
+            try {
+                // отправляем username чтобы совпадало с сервером
+                val jsonBody = JSONObject().apply {
+                    put("username", email)
+                    put("password", password)
+                }.toString()
+
+                val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+                val requestBody = jsonBody.toRequestBody(mediaType)
+
+                val request = Request.Builder()
+                    .url("$BASE_URL/auth/login")
+                    .post(requestBody)
+                    .addHeader("Content-Type", "application/json")
+                    .build()
+
+                val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+                val responseBody = try { response.body?.string() } catch (e: Exception) { null }
+
+                Log.d(TAG, "login() code=${response.code} body=$responseBody")
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        // Фаллбек: если тело пустое, но код 200 — считаем вход успешным
+                        if (responseBody.isNullOrEmpty()) {
+                            saveLoginAndGoMain(email, null)
+                          //  showToast("Вход выполнен (без тела ответа).")
+                            return@withContext
+                        }
+
+                        try {
+                            val jsonResponse = JSONObject(responseBody)
+                            val success = jsonResponse.optBoolean("success", true)
+                            val message = jsonResponse.optString("message", "")
+                            val token = jsonResponse.optString("token", "")
+                            val user = jsonResponse.optString("user", "")
+
+                            if (success) {
+                                // Сохраняем синхронно перед переходом
+                                saveLoginAndGoMain(email, if (token.isNotEmpty()) token else null, user)
+                                Log.d(TAG, "Login successful. token=${if (token.isNotEmpty()) "present" else "absent"}")
+                                showToast(if (message.isNotEmpty()) message else "Вход выполнен успешно!")
+                            } else {
+                                showToast(if (message.isNotEmpty()) message else "Ошибка входа")
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "JSON parsing error", e)
+                            // Если парсинг упал, но HTTP 200 — делаем fallback
+                            saveLoginAndGoMain(email, null)
+                           // showToast("Вход выполнен (не удалось распарсить ответ).")
+                        }
+                    } else {
+                        // Ошибки HTTP
+                        handleErrorResponse(response, responseBody)
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e(TAG, "Network error", e)
+                withContext(Dispatchers.Main) {
+                    showToast("Ошибка сети. Проверьте подключение и адрес сервера")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error", e)
+                withContext(Dispatchers.Main) {
+                    showToast("Ошибка: ${e.localizedMessage}")
                 }
             }
+        }
+    }
+
+    // Сохраняем логин синхронно и переходим в MainActivity (очищаем стек)
+    private fun saveLoginAndGoMain(email: String, token: String?, username: String? = null) {
+        val editor = sharedPreferences.edit()
+        editor.putString("email", email)
+        username?.let { editor.putString("username", it) }
+        token?.let { editor.putString("jwt_token", it) }
+        editor.putBoolean("isLoggedIn", true)
+        editor.commit() // синхронная запись!
+
+        val intent = Intent(this@MainActivitylogin2, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        intent.putExtra("skipLoginCheck", true)
+        startActivity(intent)
+        finish()
+    }
+
+    private fun handleErrorResponse(response: okhttp3.Response, responseBody: String?) {
+        when (response.code) {
+            400 -> {
+                try {
+                    val errorJson = JSONObject(responseBody ?: "{}")
+                    val message = errorJson.optString("message", "Некорректный запрос")
+                    showToast("Ошибка: $message")
+                } catch (e: Exception) {
+                    showToast("Ошибка 400: Некорректный запрос")
+                }
+            }
+            401 -> {
+                try {
+                    val errorJson = JSONObject(responseBody ?: "{}")
+                    val message = errorJson.optString("message", "Неверный email или пароль")
+                    showToast(message)
+                } catch (e: Exception) {
+                    showToast("Неверный email или пароль")
+                }
+            }
+            404 -> showToast("Пользователь не найден")
+            500 -> showToast("Ошибка сервера. Попробуйте позже")
+            else -> showToast("Ошибка сервера: ${response.code}")
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

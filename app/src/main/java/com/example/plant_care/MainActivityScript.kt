@@ -25,6 +25,11 @@ class MainActivityScript : AppCompatActivity() {
         startActivity(intent)
     }
 
+    fun startready_made(v: View){
+        val intent = Intent(this, MainActivityReady_madeScript::class.java)
+        startActivity(intent)
+    }
+
     fun startmenu(v: View) {
         val intent = Intent(this, MainActivity2::class.java)
         startActivity(intent)

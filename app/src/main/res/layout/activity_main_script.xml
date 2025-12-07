@@ -13,6 +13,7 @@
         android:layout_width="257dp"
         android:layout_height="96dp"
         android:backgroundTint="@color/reg_button_colour"
+        android:onClick="startready_made"
         android:text="Готовые сценарии"
         android:textColor="@color/black"
         android:textSize="25sp"

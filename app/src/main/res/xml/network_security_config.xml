@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- ESP32 устройства (оставляем из вашего кода) -->
+        <domain includeSubdomains="true">192.168.4.1</domain>
+        <domain includeSubdomains="true">esp32.local</domain>
+
+        <!-- ДЛЯ ВАШЕГО ЛОКАЛЬНОГО СЕРВЕРА: -->
+        <!-- IP вашего компьютера в сети -->
+        <domain includeSubdomains="true">192.168.1.108</domain>
+        <domain includeSubdomains="true">192.168.1.10</domain> <!-- ваш текущий IP -->
+
+        <!-- Для эмулятора Android Studio -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+
+        <!-- Локальные адреса -->
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>

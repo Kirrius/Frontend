@@ -9,32 +9,17 @@
     tools:context=".MainActivityreadyscript2">
 
     <ImageButton
-        android:id="@+id/imageButton"
-        android:layout_width="69dp"
-        android:layout_height="66dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.871"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.912"
-        android:src="@drawable/strelkavpravo"
-        android:background="@null"
-        app:srcCompat="@drawable/strelkavpravo" />
-
-    <ImageButton
         android:id="@+id/imageButton2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@null"
+        android:src="@drawable/___1_"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.089"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHorizontal_bias="0.0926"
-        app:layout_constraintVertical_bias="0.912"
-        android:src="@drawable/strelkavlevo"
-        android:background="@null"
-        app:srcCompat="@drawable/strelkavlevo" />
+        app:layout_constraintVertical_bias="0.911" />
 
     <Button
         android:id="@+id/button8"

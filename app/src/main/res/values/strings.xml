@@ -6,4 +6,5 @@
     <string name="title_activity_main_menu">MainActivityMenu</string>
     <string name="title_activity_main_activitymenu">MainActivitymenu</string>
     <string name="title_activity_main_script">MainActivityScript</string>
+    <string name="title_activity_main_input">MainActivityInput</string>
 </resources>
