@@ -70,6 +70,7 @@
             android:label="@string/title_activity_main_activitymenu"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Plant_care" />
+
         <activity
             android:name=".MainActivityMenu"
             android:exported="false"

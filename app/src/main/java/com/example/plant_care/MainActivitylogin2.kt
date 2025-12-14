@@ -118,7 +118,7 @@ class MainActivitylogin2 : AppCompatActivity() {
                         // Фаллбек: если тело пустое, но код 200 — считаем вход успешным
                         if (responseBody.isNullOrEmpty()) {
                             saveLoginAndGoMain(email, null)
-                          //  showToast("Вход выполнен (без тела ответа).")
+                            //  showToast("Вход выполнен (без тела ответа).")
                             return@withContext
                         }
 
@@ -141,7 +141,7 @@ class MainActivitylogin2 : AppCompatActivity() {
                             Log.e(TAG, "JSON parsing error", e)
                             // Если парсинг упал, но HTTP 200 — делаем fallback
                             saveLoginAndGoMain(email, null)
-                           // showToast("Вход выполнен (не удалось распарсить ответ).")
+                            // showToast("Вход выполнен (не удалось распарсить ответ).")
                         }
                     } else {
                         // Ошибки HTTP

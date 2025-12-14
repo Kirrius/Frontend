@@ -2,19 +2,12 @@ package com.example.plant_care
 
 import android.content.Context
 import android.content.Intent
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.View
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseAuth
 
 class MainActivityInput : AppCompatActivity() {
 
@@ -35,7 +28,14 @@ class MainActivityInput : AppCompatActivity() {
                 super.onPageFinished(view, url)
                 // Проверяем, загрузилась ли страница
                 if (url == "http://192.168.4.1/save") {
-                    startActivity(Intent(this@MainActivityInput, MainActivitymenu::class.java))
+                    // Сохраняем флаг успешного подключения в SharedPreferences
+                    val prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                    prefs.edit().putBoolean("isWifiConnected", true).apply()
+
+                    // Переходим в главное меню с очисткой стека
+                    val intent = Intent(this@MainActivityInput, MainActivitymenu::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
                     finish()
                 }
             }
@@ -57,7 +57,11 @@ class MainActivityInput : AppCompatActivity() {
         if (myWebView.canGoBack()) {
             myWebView.goBack()
         } else {
-            super.onBackPressed()
+            // При нажатии "Назад" также переходим в главное меню
+            val intent = Intent(this, MainActivitymenu::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
         }
     }
 }

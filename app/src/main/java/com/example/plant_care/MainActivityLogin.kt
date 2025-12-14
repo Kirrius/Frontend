@@ -132,14 +132,14 @@ class MainActivityLogin : AppCompatActivity() {
                         editor.putBoolean("isLoggedIn", true)
                         editor.commit()
 
-                        showToast("Регистрация успешна")
-                        // Переходим в MainActivity; ставим флаг skipLoginCheck чтобы главный экран не редиректил обратно.
-                        // Также очищаем стек, чтобы не вернуться на экран логина.
-                        val intent = Intent(this@MainActivityLogin, MainActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        intent.putExtra("skipLoginCheck", true)
-                        startActivity(intent)
-                        finish()
+                       // showToast("Регистрация успешна")
+                            // Переходим в MainActivity; ставим флаг skipLoginCheck чтобы главный экран не редиректил обратно.
+                            // Также очищаем стек, чтобы не вернуться на экран логина.
+                            val intent = Intent(this@MainActivityLogin, MainActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            intent.putExtra("skipLoginCheck", true)
+                            startActivity(intent)
+                            finish()
                     } else {
                         // Явная обработка 409 — пользователь с таким email уже существует
                         if (response.code == 409) {
