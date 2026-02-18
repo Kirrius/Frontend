@@ -1,84 +1,69 @@
 package com.example.plant_care
+
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Looper
+import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.Switch
-import android.widget.TextView
+import android.widget.*
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import okhttp3.*
-import java.io.IOException
-import okhttp3.MediaType.Companion.toMediaType
-import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
-import kotlin.jvm.java
-import kotlin.collections.set
-import kotlin.io.use
-import kotlin.text.isNullOrEmpty
-import android.util.Log
 import com.google.gson.JsonSyntaxException
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import org.json.JSONObject
+import java.io.IOException
 
 class MainActivityreadyscript : AppCompatActivity() {
 
-    data class ServerResponse(
-        val status: String,
-        val message: Map<String, Any?>
-    )
-
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private lateinit var wateringSwitch: Switch
-    private lateinit var wateringSwitchuv: Switch
+    private lateinit var lightSwitch: Switch
     private lateinit var TempSwitch: Switch
     private lateinit var wateringTextView: TextView
-    private lateinit var wateringTextViewuv: TextView
+    private lateinit var lightTextView: TextView
     private lateinit var TempTextView: TextView
     private lateinit var wateringn1TextView: TextView
     private lateinit var wateringn2TextView: TextView
-    private lateinit var wateringnuv1TextView: TextView
-    private lateinit var wateringnuv2TextView: TextView
+    private lateinit var light1TextView: TextView
+    private lateinit var light2TextView: TextView
     private lateinit var TempTextViewt1: TextView
     private lateinit var TempTextViewt2: TextView
     private lateinit var wateringEditText1: EditText
     private lateinit var wateringEditText2: EditText
-    private lateinit var wateringEditTextuv1: EditText
-    private lateinit var wateringEditTextuv2: EditText
-    private lateinit var TempEditText1: EditText
-    private lateinit var TempEditText2: EditText
+    private lateinit var lightEditText1: EditText
+    private lateinit var lightEditText2: EditText
     private lateinit var wateringnButton: Button
-    private lateinit var wateringnuvButton: Button
-    private lateinit var TempButton: Button
+    private lateinit var lightButton: Button
     private lateinit var saveButton: Button
     private lateinit var vpravoButton: ImageButton
     private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
 
-    val textwatering = "    Условия для полива:\n" +
+    private val textwatering = "    Условия для полива:\n" +
             "   - Если уровень влажности почвы < n1%:\n" +
             "   - Включить насос.\n" +
             "   - Поливать до достижения уровня влажности почвы > n2%.\n" +
             "   - Выключить насос.\n"
 
-    val textwateringuv = "    Условия для отправки уведомления:\n" +
-            "   - Если уровень влажности почвы < n.1%:\n" +
-            "   - Отправить уведомление.\n" +
-            "   - Если уровень влажности почвы > n.2%.\n" +
-            "   - Отправить уведомление.\n"
+    private val textlight = "    Условия для освещения:\n" +
+            "   - Если уровень освещенности < l1 люкс:\n" +
+            "   - Включить фитолампу.\n" +
+            "   - Досвечивать до достижения уровня > l2 люкс.\n" +
+            "   - Выключить фитолампу.\n"
 
-    val textn1 = "введите\nn1:"
-    val textn2 = "введите\nn2:"
-    val textnuv1 = "введите\nn.1:"
-    val textnuv2 = "введит\nn.2:"
-    private val REQUEST_CODE = 1
+    private val textn1 = "введите\nn1:"
+    private val textn2 = "введите\nn2:"
+
+    private val textl1 = "введите\nl1:"
+    private val textl2 = "введите\nl2:"
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,136 +71,128 @@ class MainActivityreadyscript : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main_activityreadyscript)
 
-        var n1 = intent.getStringExtra("n1") ?: "" // влажность почвы
-        var n2 = intent.getStringExtra("n2") ?: ""
-        var n1v = intent.getStringExtra("n1v") ?: ""// влажность почвы(уведомления)
-        var n2v = intent.getStringExtra("n2v") ?: ""
-        var m1 = intent.getStringExtra("m1") ?: ""// влажность воздуха
-        var m2 = intent.getStringExtra("m2") ?: ""
-        var t1 = intent.getStringExtra("t1") ?: "" // температура воздуха
-        var t2 = intent.getStringExtra("t2") ?: ""
+        // Получаем название растения из предыдущего экрана
+        val plantName = intent.getStringExtra("PLANT_NAME") ?: "Неизвестное растение"
+
+        // Получаем данные из Intent
+        var n1 = intent.getStringExtra("n1") ?: "" // влажность почвы min
+        var n2 = intent.getStringExtra("n2") ?: "" // влажность почвы max
+        var m1 = intent.getStringExtra("m1") ?: "" // влажность воздуха min
+        var m2 = intent.getStringExtra("m2") ?: "" // влажность воздуха max
+        var t1 = intent.getStringExtra("t1") ?: "" // температура воздуха min
+        var t2 = intent.getStringExtra("t2") ?: "" // температура воздуха max
+        var l1 = intent.getStringExtra("l1") ?: "" // освещённость min
+        var l2 = intent.getStringExtra("l2") ?: "" // освещённость max
         var AirHumiditySwitchState = intent.getBooleanExtra("AirHumidityswitchState", false)
         var TempSwitchState = intent.getBooleanExtra("TempswitchState", false)
-        var firebaseAuth = FirebaseAuth.getInstance()
-        var currentUser: FirebaseUser? = firebaseAuth.currentUser
-        var hostId = currentUser?.uid ?: "Пользователь не аутентифицирован"
-      //  var hostPassword = intent.getStringExtra("Password")
-        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
-        var hostPassword = sharedPreferences.getString("Password", "default_value")
-        var setting = mutableMapOf<String, Any?>()
-        var minimumAirHumidity = intent.getIntExtra("m1Int", -1)
-        var maximumAirHumidity = intent.getIntExtra("m2Int", -1)
-        var minimumTemp = intent.getIntExtra("t1Int", -1)
-        var maximumTemp = intent.getIntExtra("t2Int", -1)
 
-        setting["minSoilMoist"] = "" // min влажность почвы
-        setting["maxSoilMoist"] = "" // max влажность почвы
-        setting["minNotifHumid"] = "" // min влажность почвы(уведомления)
-        setting["maxNotifHumid"] = "" // max влажность почвы(уведомления)
-        setting["hostId"] = hostId
-        if (hostPassword != null) {
-            // Теперь вы можете безопасно использовать hostPassword как String
-            setting["hostPassword"] = hostPassword
-        }
-        if(minimumAirHumidity != -1){
-            setting["minAirHumid"] = minimumAirHumidity // влажность воздуха
-        }
-        if(minimumAirHumidity != -1){
-            setting["maxAirHumid"] = minimumAirHumidity // влажность воздуха
-        }
-        if(minimumTemp != - 1){
-            setting["minAirTemper"] = minimumTemp // температура воздуха
-        }
-        if(maximumTemp != - 1){
-            setting["maxAirTemper"] = maximumTemp // температура воздуха
-        }
+        // ИЗМЕНЕНО: Используем Float вместо Int
+        var minimumAirHumidity = intent.getFloatExtra("m1Float", -1f)
+        var maximumAirHumidity = intent.getFloatExtra("m2Float", -1f)
+        var minimumTemp = intent.getFloatExtra("t1Float", -1f)
+        var maximumTemp = intent.getFloatExtra("t2Float", -1f)
 
+        // Инициализация UI элементов
         wateringSwitch = findViewById(R.id.switch2)
-        wateringSwitchuv = findViewById(R.id.switch3)
+        lightSwitch = findViewById(R.id.switch3)
         wateringTextView = findViewById(R.id.textView13)
-        wateringTextViewuv = findViewById(R.id.textView10)
+        lightTextView = findViewById(R.id.textView10)
         wateringn1TextView = findViewById(R.id.textView6)
         wateringn2TextView = findViewById(R.id.textView9)
-        wateringnuv1TextView = findViewById(R.id.textView11)
-        wateringnuv2TextView = findViewById(R.id.textView14)
+        light1TextView = findViewById(R.id.textView11)
+        light2TextView = findViewById(R.id.textView14)
         wateringEditText1 = findViewById(R.id.editTextText2)
         wateringEditText2 = findViewById(R.id.editTextText3)
-        wateringEditTextuv1 = findViewById(R.id.editTextText4)
-        wateringEditTextuv2 = findViewById(R.id.editTextText6)
+        lightEditText1 = findViewById(R.id.editTextText4)
+        lightEditText2 = findViewById(R.id.editTextText6)
         wateringnButton = findViewById(R.id.button5)
-        wateringnuvButton = findViewById(R.id.button7)
+        lightButton = findViewById(R.id.button7)
         saveButton = findViewById(R.id.button6)
-        vpravoButton= findViewById(R.id.imageButton9)
+        vpravoButton = findViewById(R.id.imageButton9)
 
+        // Заполняем поля значениями из Intent (если они есть)
+        if (n1.isNotEmpty()) wateringEditText1.setText(n1)
+        if (n2.isNotEmpty()) wateringEditText2.setText(n2)
+        if (l1.isNotEmpty()) lightEditText1.setText(l1) // НОВЫЙ
+        if (l2.isNotEmpty()) lightEditText2.setText(l2) // НОВЫЙ
+
+        // Настройка переключателя полива
         wateringSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                wateringTextView.text = textwatering // Устанавливаем текст при включении
+                wateringTextView.text = textwatering
                 wateringn1TextView.text = textn1
                 wateringn2TextView.text = textn2
                 wateringn1TextView.visibility = View.VISIBLE
                 wateringn2TextView.visibility = View.VISIBLE
-                wateringnButton.visibility = View.VISIBLE // Показываем кнопку
-                wateringTextView.visibility = View.VISIBLE // Показываем текст
-                wateringEditText1.visibility = View.VISIBLE // Показываем EditText
-                wateringEditText2.visibility = View.VISIBLE // Показываем EditText
+                wateringnButton.visibility = View.VISIBLE
+                wateringTextView.visibility = View.VISIBLE
+                wateringEditText1.visibility = View.VISIBLE
+                wateringEditText2.visibility = View.VISIBLE
+
                 wateringnButton.setOnClickListener {
                     n1 = wateringEditText1.text.toString()
                     n2 = wateringEditText2.text.toString()
-                    var n1Int = n1.toIntOrNull()
-                    var n2Int = n2.toIntOrNull()
+                    // ИЗМЕНЕНО: toFloatOrNull вместо toIntOrNull
+                    val n1Float = n1.toFloatOrNull()
+                    val n2Float = n2.toFloatOrNull()
 
-                    if(n1Int != null && n2Int != null){
-                        setting["minSoilMoist"] = n1Int
-                        setting["maxSoilMoist"] = n2Int
+                    if (n1Float != null && n2Float != null) {
+                        Toast.makeText(this, "Значения сохранены: n1=$n1Float, n2=$n2Float", Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(this, "Пожалуйста, введите корректные значения", Toast.LENGTH_SHORT).show()
                     }
                 }
-
             } else {
-                wateringTextView.visibility = View.GONE // Скрываем текст
-                wateringn1TextView.visibility = View.GONE // Скрываем текст
-                wateringn2TextView.visibility = View.GONE // Скрываем текст
-                wateringEditText1.visibility = View.GONE // Скрываем EditText
-                wateringEditText2.visibility = View.GONE // Скрываем EditText
-                wateringnButton.visibility = View.GONE // Скрываем кнопку
+                wateringTextView.visibility = View.GONE
+                wateringn1TextView.visibility = View.GONE
+                wateringn2TextView.visibility = View.GONE
+                wateringEditText1.visibility = View.GONE
+                wateringEditText2.visibility = View.GONE
+                wateringnButton.visibility = View.GONE
             }
         }
 
-        wateringSwitchuv.setOnCheckedChangeListener { _, isChecked ->
+
+
+        // Настройка переключателя освещённости
+        lightSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                wateringTextViewuv.text = textwateringuv // Устанавливаем текст при включении
-                wateringnuv1TextView.text = textnuv1
-                wateringnuv2TextView.text = textnuv2
-                wateringnuv1TextView.visibility = View.VISIBLE
-                wateringnuv2TextView.visibility = View.VISIBLE
-                wateringnuvButton.visibility = View.VISIBLE // Показываем кнопку
-                wateringTextViewuv.visibility = View.VISIBLE // Показываем текст
-                wateringEditTextuv1.visibility = View.VISIBLE // Показываем EditText
-                wateringEditTextuv2.visibility = View.VISIBLE // Показываем EditText
-                wateringnuvButton.setOnClickListener {
-                    n1v = wateringEditTextuv1.text.toString()
-                    n2v = wateringEditTextuv2.text.toString()
-                    var nv1Int = n1v.toIntOrNull()
-                    var nv2Int = n2v.toIntOrNull()
-                    if (nv1Int != null && nv2Int != null){
-                        setting["minNotifHumid"] = nv1Int
-                        setting["maxNotifHumid"] = nv2Int
+                lightTextView.text = textlight
+                light1TextView.text = textl1
+                light2TextView.text = textl2
+                light1TextView.visibility = View.VISIBLE
+                light2TextView.visibility = View.VISIBLE
+                lightButton.visibility = View.VISIBLE
+                lightTextView.visibility = View.VISIBLE
+                lightEditText1.visibility = View.VISIBLE
+                lightEditText2.visibility = View.VISIBLE
+
+                lightButton.setOnClickListener {
+                    l1 = lightEditText1.text.toString()
+                    l2 = lightEditText2.text.toString()
+                    // ИЗМЕНЕНО: toFloatOrNull вместо toIntOrNull
+                    val l1Float = l1.toFloatOrNull()
+                    val l2Float = l2.toFloatOrNull()
+
+                    if (l1Float != null && l2Float != null) {
+                        Toast.makeText(this, "Значения сохранены: l1=$l1Float, l2=$l2Float", Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(this, "Пожалуйста, введите корректные значения", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else {
-                wateringTextViewuv.visibility = View.GONE
-                wateringnuv1TextView.visibility = View.GONE
-                wateringnuv2TextView.visibility = View.GONE
-                wateringTextViewuv.visibility = View.GONE
-                wateringnuvButton.visibility = View.GONE
-                wateringEditTextuv1.visibility = View.GONE
-                wateringEditTextuv2.visibility = View.GONE
+                lightTextView.visibility = View.GONE
+                light1TextView.visibility = View.GONE
+                light2TextView.visibility = View.GONE
+                lightEditText1.visibility = View.GONE
+                lightEditText2.visibility = View.GONE
+                lightButton.visibility = View.GONE
             }
         }
 
+
+
+        // Настройка ActivityResultLauncher для получения данных из следующего Activity
         activityResultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -223,120 +200,146 @@ class MainActivityreadyscript : AppCompatActivity() {
                 val data = result.data
                 AirHumiditySwitchState = data?.getBooleanExtra("AirHumidityswitchState", false) ?: false
                 TempSwitchState = data?.getBooleanExtra("TempswitchState", false) ?: false
-                var wateringswitchState = data?.getBooleanExtra("wateringswitchState", false) ?: false
-                var wateringswitchuvState = data?.getBooleanExtra("wateringswitchuvState", false) ?: false
-                minimumAirHumidity = data?.getIntExtra("m1Int", -1) ?: -1
-                maximumAirHumidity = data?.getIntExtra("m2Int", -1) ?: -1
-                minimumTemp = data?.getIntExtra("t1Int", -1) ?: -1
-                maximumTemp = data?.getIntExtra("t2Int", -1) ?: -1
+                // ИЗМЕНЕНО: getFloatExtra вместо getIntExtra
+                minimumAirHumidity = data?.getFloatExtra("m1Float", -1f) ?: -1f
+                maximumAirHumidity = data?.getFloatExtra("m2Float", -1f) ?: -1f
+                minimumTemp = data?.getFloatExtra("t1Float", -1f) ?: -1f
+                maximumTemp = data?.getFloatExtra("t2Float", -1f) ?: -1f
                 n1 = data?.getStringExtra("n1") ?: ""
                 n2 = data?.getStringExtra("n2") ?: ""
-                n1v = data?.getStringExtra("n1v") ?: ""
-                n2v = data?.getStringExtra("n2v") ?: ""
                 m1 = data?.getStringExtra("m1") ?: ""
                 m2 = data?.getStringExtra("m2") ?: ""
                 t1 = data?.getStringExtra("t1") ?: ""
                 t2 = data?.getStringExtra("t2") ?: ""
+                l1 = data?.getStringExtra("l1") ?: ""
+                l2 = data?.getStringExtra("l2") ?: ""
+
+                // Обновляем поля, если значения пришли
+                if (n1.isNotEmpty()) wateringEditText1.setText(n1)
+                if (n2.isNotEmpty()) wateringEditText2.setText(n2)
+                if (l1.isNotEmpty()) lightEditText1.setText(l1)
+                if (l2.isNotEmpty()) lightEditText2.setText(l2)
             }
         }
 
+        // Обработка кнопки сохранения
         saveButton.setOnClickListener {
+            // Создаем Map с данными для отправки на сервер
+            val serverData = mutableMapOf<String, Any?>()
+
+            // Добавляем название растения
+            serverData["nam"] = plantName
+
+            // Обработка полива (влажность почвы)
             if (wateringSwitch.isChecked) {
                 n1 = wateringEditText1.text.toString()
                 n2 = wateringEditText2.text.toString()
 
-                var n1Int = n1.toIntOrNull()
-                var n2Int = n2.toIntOrNull()
+                // ИЗМЕНЕНО: toFloatOrNull вместо toIntOrNull
+                val n1Float = n1.toFloatOrNull()
+                val n2Float = n2.toFloatOrNull()
 
-                if (n1Int != null && n2Int != null) {
-                    setting["minSoilMoist"] = n1Int
-                    setting["maxSoilMoist"] = n2Int
-                }
-                else {
+                if (n1Float != null && n2Float != null) {
+                    serverData["min_soil_moisture"] = n1Float  // Float вместо Int
+                    serverData["max_soil_moisture"] = n2Float  // Float вместо Int
+                } else {
                     Toast.makeText(this, "Пожалуйста, введите значения для полива", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
+            } else {
+                // Используем 1000.0f как маркер "параметр не используется"
+                serverData["min_soil_moisture"] = 1000.0f  // Float вместо Int
+                serverData["max_soil_moisture"] = 1000.0f  // Float вместо Int
             }
-            else {
-                setting["minSoilMoist"] = 1000
-                setting["maxSoilMoist"] = 1000
-            }
-            if (wateringSwitchuv.isChecked){
-                n1v = wateringEditTextuv1.text.toString()
-                n2v = wateringEditTextuv2.text.toString()
 
-                var nv1Int = n1v.toIntOrNull()
-                var nv2Int = n2v.toIntOrNull()
-
-                if(nv1Int != null && nv2Int != null){
-                    setting["minNotifHumid"] = nv1Int
-                    setting["maxNotifHumid"] = nv2Int
-                }
-                else {
-                    Toast.makeText(this, "Пожалуйста, введите значения для полива", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-            }
-            else {
-                setting["minNotifHumid"] = 1000
-                setting["maxNotifHumid"] = 1000
-            }
-            if(AirHumiditySwitchState){
-                if(minimumAirHumidity != -1 && maximumAirHumidity != -1){
-                    setting["minAirHumid"] = minimumAirHumidity
-                    setting["maxAirHumid"] = maximumAirHumidity
-                }
-                else {
+            // Обработка влажности воздуха
+            if (AirHumiditySwitchState) {
+                // ИЗМЕНЕНО: Проверка на -1f вместо -1
+                if (minimumAirHumidity != -1f && maximumAirHumidity != -1f) {
+                    serverData["min_humidity"] = minimumAirHumidity  // Float
+                    serverData["max_humidity"] = maximumAirHumidity  // Float
+                } else {
                     Toast.makeText(this, "Введите значения для влажности воздуха", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
+            } else {
+                serverData["min_humidity"] = 1000.0f  // Float
+                serverData["max_humidity"] = 1000.0f  // Float
             }
-            else{
-                setting["minAirHumid"] = 1000
-                setting["maxAirHumid"] = 1000
-            }
-            if(TempSwitchState){
-                if(minimumTemp != -1 && maximumTemp != -1){
-                    setting["minAirTemper"] = minimumTemp
-                    setting["maxAirTemper"] = maximumTemp
-                }
-                else {
+
+            // Обработка температуры воздуха
+            if (TempSwitchState) {
+                // ИЗМЕНЕНО: Проверка на -1f вместо -1
+                if (minimumTemp != -1f && maximumTemp != -1f) {
+                    serverData["min_temperature"] = minimumTemp  // Float
+                    serverData["max_temperature"] = maximumTemp  // Float
+                } else {
                     Toast.makeText(this, "Введите значения для температуры воздуха", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
+            } else {
+                serverData["min_temperature"] = 1000.0f  // Float
+                serverData["max_temperature"] = 1000.0f  // Float
             }
-            else {
-                setting["minAirTemper"] = 1000
-                setting["maxAirTemper"] = 1000
+
+            // Обработка освещенности
+            if (lightSwitch.isChecked) {
+                l1 = lightEditText1.text.toString()
+                l2 = lightEditText2.text.toString()
+
+                val l1Float = l1.toFloatOrNull()
+                val l2Float = l2.toFloatOrNull()
+
+                if (l1Float != null && l2Float != null) {
+                    serverData["min_light_lux"] = l1Float
+                    serverData["max_light_lux"] = l2Float
+                } else {
+                    Toast.makeText(this, "Пожалуйста, введите значения для освещенности", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+            } else {
+                serverData["min_light_lux"] = 1000.0f
+                serverData["max_light_lux"] = 1000.0f
             }
-            setting.forEach { (key, value) ->
-                Log.d("Settings", "$key: $value")
+
+            // Логируем данные для отправки
+            serverData.forEach { (key, value) ->
+                Log.d("ServerData", "$key: $value (тип: ${value?.javaClass?.simpleName})")
             }
-            postRequest(setting)
+
+            // Отправляем данные на сервер
+            postRequest(serverData)
         }
 
-        vpravoButton.setOnClickListener{
-            var intent = Intent(this, MainActivityreadyscript2::class.java)
+        // Обработка кнопки перехода вправо
+        vpravoButton.setOnClickListener {
+            val intent = Intent(this, MainActivityreadyscript2::class.java)
+            // Передаем текущие данные в следующее Activity
+
+            // Для обратной совместимости оставляем старые ключи
             intent.putExtra("wateringswitchState", wateringSwitch.isChecked)
-            intent.putExtra("wateringswitchuvState", wateringSwitchuv.isChecked)
-            intent.putExtra("AirHumidityswitchState", AirHumiditySwitchState) // Передаем состояние свитча
+            intent.putExtra("AirHumidityswitchState", AirHumiditySwitchState)
             intent.putExtra("TempswitchState", TempSwitchState)
-            intent.putExtra("n1", n1)
-            intent.putExtra("n2", n2)
-            intent.putExtra("n1v", n1v)
-            intent.putExtra("n2v", n2v)
-            intent.putExtra("m1", m1)
-            intent.putExtra("m2", m2)
-            intent.putExtra("t1", t1)
-            intent.putExtra("t2", t2)
-            intent.putExtra("m1Int", minimumAirHumidity)
-            intent.putExtra("m2Int", maximumAirHumidity)
-            intent.putExtra("t1Int", minimumTemp)
-            intent.putExtra("t2Int", maximumTemp)
-            activityResultLauncher.launch(intent) // Запускаем вторую активность
+            intent.putExtra("min_soil_moisture", n1)
+            intent.putExtra("max_soil_moisture", n2)
+            intent.putExtra("min_humidity", m1)
+            intent.putExtra("max_humidity", m2)
+            intent.putExtra("min_temperature", t1)
+            intent.putExtra("max_temperature", t2)
+            intent.putExtra("min_light_lux", l1)
+            intent.putExtra("max_light_lux", l2)
+
+            // ИЗМЕНЕНО: Передаем Float значения с новыми ключами
+            intent.putExtra("m1Float", minimumAirHumidity)
+            intent.putExtra("m2Float", maximumAirHumidity)
+            intent.putExtra("t1Float", minimumTemp)
+            intent.putExtra("t2Float", maximumTemp)
+
+            // Также передаем название растения
+            intent.putExtra("PLANT_NAME", plantName)
+
+            activityResultLauncher.launch(intent)
         }
-
-
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -345,90 +348,81 @@ class MainActivityreadyscript : AppCompatActivity() {
         }
     }
 
-    private fun postRequest(setting: Map<String, Any?>) {
+    private fun postRequest(data: Map<String, Any?>) {
         val client = OkHttpClient()
         val gson = Gson()
 
-        // Сериализация словаря в JSON
-        val json = gson.toJson(setting)
+        // 1. Получаем сохраненный email
+        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val email = sharedPreferences.getString("email", "") ?: ""
 
-        // Создание тела запроса
-        val requestBody = RequestBody.create("application/json; charset=utf-8".toMediaType(), json)
+        Log.d("AUTH_INFO", "Используем email: $email")
 
-        // Создание запроса
+        // 2. Создаем полный JSON с email
+        val fullData = mutableMapOf<String, Any?>()
+        fullData.putAll(data)
+
+        // Добавляем только email
+        fullData["username"] = email  // Важно: используем "username" как в сервере
+
+        // 3. Сериализация данных в JSON
+        val json = gson.toJson(fullData)
+        Log.d("POST_REQUEST", "Отправляемые данные: $json")
+
+        // 4. Создание запроса
         val request = Request.Builder()
-            .url("https://www.plantsystem.ru/createScript") // Замените на ваш URL
-            .post(requestBody)
+            .url("http://192.168.1.107:5000/api/scenarios")
+            .post(RequestBody.create("application/json; charset=utf-8".toMediaType(), json))
+            .addHeader("Content-Type", "application/json")
             .build()
 
-        // Выполнение запроса
+        // 5. Выполнение запроса
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace() // Обработка ошибки
-                Log.e("POST_REQUEST", "Ошибка при отправке запроса: ${e.message}")
+                Log.e("POST_REQUEST", "Ошибка: ${e.message}")
+                runOnUiThread {
+                    Toast.makeText(this@MainActivityreadyscript,
+                        "Ошибка сети: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             }
 
             override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) {
-                        Log.e("POST_REQUEST", "Ошибка от сервера: ${response.code} - ${response.message}")
-                        throw IOException("Unexpected code $response")
-                    }
+                val responseData = response.body?.string() ?: ""
+                Log.d("POST_REQUEST", "Ответ: код=${response.code}, тело=$responseData")
 
-                    // Получаем строку ответа
-                    val responseData = response.body?.string() ?: ""
-
-                    // Если ответ пустой
-                    if (responseData.isEmpty()) {
-                        Log.e("POST_REQUEST", "Ответ пустой")
-                        return
-                    }
-
-                    // Обрабатываем ответ с кодом 500
-                    if (response.code == 500) {
-                        try {
-                            val errorResponse = gson.fromJson(responseData, ErrorResponse::class.java)
-                            Log.e("POST_REQUEST", "Ошибка на сервере: ${errorResponse.error} - ${errorResponse.details}")
-                        } catch (e: JsonSyntaxException) {
-                            Log.e("POST_REQUEST", "Ошибка при парсинге ошибки: ${e.message}")
+                runOnUiThread {
+                    when (response.code) {
+                        201 -> {
+                            try {
+                                // Новый формат ответа
+                                val jsonObj = JSONObject(responseData)
+                                if (jsonObj.getBoolean("success")) {
+                                    // Сразу переходим без задержки
+                                    val intent = Intent(this@MainActivityreadyscript, MainActivitymenu::class.java)
+                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                    startActivity(intent)
+                                    finish()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(this@MainActivityreadyscript,
+                                    "Сценарий создан, но ошибка парсинга", Toast.LENGTH_SHORT).show()
+                                // Даже при ошибке парсинга переходим
+                                val intent = Intent(this@MainActivityreadyscript, MainActivitymenu::class.java)
+                                startActivity(intent)
+                                finish()
+                            }
                         }
-                    }
-
-                    // Обрабатываем ответ с кодом 201
-                    if (response.code == 201) {
-                        try {
-                            // Парсим ответ с двумя фрагментами (JSON и целое число)
-                            val tupleResponse = gson.fromJson(responseData, TupleResponse::class.java)
-
-                            // Доступ к данным в ответе
-                            Log.d("POST_REQUEST", "Запрос успешно выполнен, ответ: ${tupleResponse.data.message}, script id: ${tupleResponse.data.scriptId}")
-                            Log.d("POST_REQUEST", "Status code: ${tupleResponse.statusCode}")
-                        } catch (e: JsonSyntaxException) {
-                            Log.e("POST_REQUEST", "Ошибка при парсинге успешного ответа: ${e.message}")
+                        401 -> {
+                            Toast.makeText(this@MainActivityreadyscript,
+                                "Ошибка авторизации. Проверьте email.", Toast.LENGTH_LONG).show()
+                        }
+                        else -> {
+                            Toast.makeText(this@MainActivityreadyscript,
+                                "Ошибка сервера: ${response.code}", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
             }
         })
     }
-
-// Классы для парсинга ответов от сервера
-
-    // Класс для вложенного объекта данных
-    data class DataResponse(
-        val message: String,
-        val scriptId: String // или другой тип, в зависимости от структуры данных
-    )
-
-    // Класс для полного ответа от сервера
-    data class TupleResponse(
-        val data: DataResponse,  // Вложенный объект с данными
-        val statusCode: Int      // Статусный код (целое число)
-    )
-
-    // Класс для обработки ошибок (если нужно)
-    data class ErrorResponse(
-        val error: String,
-        val details: String
-    )
 }

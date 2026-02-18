@@ -28,9 +28,10 @@ class MainActivity2 : AppCompatActivity() {
             val name = nameRost.getText().toString()
 
             if (name.isBlank()) {
-                Toast.makeText(this, "Пожалуйста, введите растение", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Пожалуйста,введите название растения", Toast.LENGTH_SHORT).show()
             } else {
                 val intent = Intent(this, MainActivityScript::class.java)
+                intent.putExtra("PLANT_NAME", name)
                 startActivity(intent)
             }
         }

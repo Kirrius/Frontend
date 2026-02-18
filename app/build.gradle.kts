@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation ("org.nanohttpd:nanohttpd:2.3.1")
+    implementation ("com.android.volley:volley:1.2.1")
+    implementation ("org.json:json:20230227")
     implementation("com.google.code.gson:gson:2.8.9")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3") // Для сериализации JSON
     implementation ("com.google.firebase:firebase-auth:21.0.1")

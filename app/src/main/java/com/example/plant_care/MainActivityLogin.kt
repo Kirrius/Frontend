@@ -21,6 +21,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
@@ -30,13 +31,9 @@ class MainActivityLogin : AppCompatActivity() {
     private lateinit var submitButton: Button
     private lateinit var togglePasswordVisibilitySwitch: Switch
 
-    // Поменяйте на IP вашего сервера в локальной сети (например "http://192.168.1.108:5000")
-    // Для эмулятора: "http://10.0.2.2:5000"
-    private val BASE_URL = "http://192.168.1.108:5000"
-
+    private val BASE_URL = "http://192.168.1.107:5000"
     private val client = OkHttpClient()
     private val sharedPreferences by lazy { getSharedPreferences("MyPrefs", MODE_PRIVATE) }
-
     private val TAG = "MainActivityLogin"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,16 +69,20 @@ class MainActivityLogin : AppCompatActivity() {
 
     private fun validateInput(email: String, password: String): Boolean {
         return when {
-            email.isBlank() || password.isBlank() -> {
-                showToast("Пожалуйста, заполните все поля")
+            email.isBlank() -> {
+                showToast("Введите email")
                 false
             }
-            password.length < 6 -> {
-                showToast("Введите пароль от 6 символов")
+            password.isBlank() -> {
+                showToast("Введите пароль")
                 false
             }
             !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                showToast("Введите корректный адрес почты")
+                showToast("Введите корректный email")
+                false
+            }
+            password.length < 6 -> {
+                showToast("Пароль должен содержать не менее 6 символов")
                 false
             }
             else -> true
@@ -102,12 +103,17 @@ class MainActivityLogin : AppCompatActivity() {
     }
 
     private fun register(email: String, password: String) {
+        Log.d(TAG, "==================================================")
+        Log.d(TAG, "РЕГИСТРАЦИЯ - Отправляем запрос...")
+
         lifecycleScope.launch {
             try {
                 val jsonBody = JSONObject().apply {
                     put("username", email)
                     put("password", password)
                 }.toString()
+
+                Log.d(TAG, "JSON тело: $jsonBody")
 
                 val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
                 val requestBody = jsonBody.toRequestBody(mediaType)
@@ -118,56 +124,110 @@ class MainActivityLogin : AppCompatActivity() {
                     .addHeader("Content-Type", "application/json")
                     .build()
 
-                val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
-                val responseBody = try { response.body?.string() } catch (e: Exception) { null }
+                Log.d(TAG, "URL: ${request.url}")
 
-                Log.d(TAG, "register() code=${response.code} body=$responseBody")
+                val response = withContext(Dispatchers.IO) {
+                    client.newCall(request).execute()
+                }
+
+                val responseBody = try {
+                    response.body?.string()
+                } catch (e: Exception) {
+                    null
+                }
+
+                Log.d(TAG, "Код ответа: ${response.code}")
+                Log.d(TAG, "Тело ответа: ${if (responseBody.isNullOrEmpty()) "ПУСТОЕ" else responseBody}")
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
-                        // Сервер может возвращать пустое тело — всё равно считаем регистрацию успешной.
-                        // Сохраняем синхронно, чтобы MainActivity увидел значение сразу.
+                        Log.d(TAG, "✅ УСПЕШНЫЙ ОТВЕТ код ${response.code}")
+
+                        // Сохраняем данные пользователя
                         val editor = sharedPreferences.edit()
                         editor.putString("email", email)
                         editor.putBoolean("isLoggedIn", true)
-                        editor.commit()
 
-                       // showToast("Регистрация успешна")
-                            // Переходим в MainActivity; ставим флаг skipLoginCheck чтобы главный экран не редиректил обратно.
-                            // Также очищаем стек, чтобы не вернуться на экран логина.
-                            val intent = Intent(this@MainActivityLogin, MainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            intent.putExtra("skipLoginCheck", true)
-                            startActivity(intent)
-                            finish()
-                    } else {
-                        // Явная обработка 409 — пользователь с таким email уже существует
-                        if (response.code == 409) {
-                            showToast("Пользователь с таким email уже существует")
-                        } else {
-                            // Остальные ошибки: разбираем тело или показываем код
-                            handleErrorResponse(response, responseBody)
+                        // Пробуем распарсить JSON, если есть тело
+                        if (!responseBody.isNullOrEmpty()) {
+                            try {
+                                val jsonResponse = JSONObject(responseBody)
+                                val success = jsonResponse.optBoolean("success", false)
+                                if (success) {
+                                    val user = jsonResponse.optString("user", email)
+                                    val userId = jsonResponse.optInt("user_id", -1)
+                                    editor.putString("username", user)
+                                    if (userId != -1) {
+                                        editor.putInt("user_id", userId)
+                                    }
+                                }
+                            } catch (e: JSONException) {
+                                Log.e(TAG, "Ошибка парсинга JSON", e)
+                            }
                         }
+
+                        editor.apply()
+
+                        // Переходим в MainActivity
+                        val intent = Intent(this@MainActivityLogin, MainActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        intent.putExtra("skipLoginCheck", true)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Log.d(TAG, "❌ НЕУСПЕШНЫЙ ОТВЕТ код ${response.code}")
+
+                        // Обработка ошибок с показом сообщений пользователю
+                        handleErrorResponse(response, responseBody)
                     }
                 }
             } catch (e: IOException) {
                 Log.e(TAG, "Network error", e)
-                withContext(Dispatchers.Main) {
-                    showToast("Ошибка сети. Проверьте подключение и адрес сервера")
-                }
+                showToast("Ошибка сети. Проверьте подключение.")
             } catch (e: Exception) {
                 Log.e(TAG, "Unexpected error", e)
-                withContext(Dispatchers.Main) {
-                    showToast("Ошибка: ${e.localizedMessage}")
-                }
+                showToast("Произошла непредвиденная ошибка.")
             }
         }
     }
 
-    /**
-     * Авто-вход: делаем POST /auth/login. Если тело пустое, но HTTP 200 — считаем вход успешным.
-     * Сохраняем токен (если пришёл) и переходим в MainActivity.
-     */
+    private fun handleErrorResponse(response: okhttp3.Response, responseBody: String?) {
+        when (response.code) {
+            409 -> { // Конфликт - пользователь уже существует
+                showToast("Пользователь с таким email уже существует.")
+            }
+            400 -> { // Плохой запрос
+                if (!responseBody.isNullOrEmpty()) {
+                    try {
+                        val jsonResponse = JSONObject(responseBody)
+                        val message = jsonResponse.optString("message", "")
+                        if (message.contains("уже существует", ignoreCase = true) ||
+                            message.contains("already exists", ignoreCase = true)) {
+                            showToast("Пользователь с таким email уже существует.")
+                        } else {
+                            showToast("Некорректные данные. Проверьте ввод.")
+                        }
+                    } catch (e: Exception) {
+                        showToast("Некорректные данные. Проверьте ввод.")
+                    }
+                } else {
+                    showToast("Некорректные данные. Проверьте ввод.")
+                }
+            }
+            500 -> { // Ошибка сервера
+                showToast("Ошибка сервера. Попробуйте позже.")
+            }
+            else -> { // Другие ошибки
+                showToast("Ошибка регистрации. Код: ${response.code}")
+            }
+        }
+    }
+
+    // Вспомогательная функция для показа Toast
+    private fun showToast(message: String) {
+        Toast.makeText(this@MainActivityLogin, message, Toast.LENGTH_LONG).show()
+    }
+
     private fun autoLoginAfterRegister(email: String, password: String) {
         lifecycleScope.launch {
             try {
@@ -188,108 +248,39 @@ class MainActivityLogin : AppCompatActivity() {
                 val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
                 val responseBody = try { response.body?.string() } catch (e: Exception) { null }
 
-                Log.d(TAG, "autoLogin() code=${response.code} body=$responseBody")
+                Log.d(TAG, "autoLogin() code=${response.code}")
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
-                        // Если тело пустое — считаем, что сервер подтвердил вход (fallback).
-                        if (responseBody.isNullOrEmpty()) {
-                            val editor = sharedPreferences.edit()
-                            editor.putString("email", email)
-                            editor.putBoolean("isLoggedIn", true)
-                            editor.commit()
+                        // Сохраняем данные
+                        val editor = sharedPreferences.edit()
+                        editor.putString("email", email)
+                        editor.putBoolean("isLoggedIn", true)
 
-                            val intent = Intent(this@MainActivityLogin, MainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            intent.putExtra("skipLoginCheck", true)
-                            startActivity(intent)
-                            finish()
-                            return@withContext
-                        }
-
-                        // Если тело есть — парсим JSON и сохраняем токен, если он есть
-                        try {
-                            val jsonResponse = JSONObject(responseBody)
-                            val success = jsonResponse.optBoolean("success", true)
-                            val token = jsonResponse.optString("token", "")
-                            val username = jsonResponse.optString("user", "")
-
-                            if (success) {
-                                val editor = sharedPreferences.edit()
-                                editor.putString("email", email)
+                        if (!responseBody.isNullOrEmpty()) {
+                            try {
+                                val jsonResponse = JSONObject(responseBody)
+                                val token = jsonResponse.optString("token", "")
+                                val username = jsonResponse.optString("user", "")
                                 if (token.isNotEmpty()) editor.putString("jwt_token", token)
                                 if (username.isNotEmpty()) editor.putString("username", username)
-                                editor.putBoolean("isLoggedIn", true)
-                                editor.commit()
-
-                                showToast("Вход выполнен")
-                                val intent = Intent(this@MainActivityLogin, MainActivity::class.java)
-                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                intent.putExtra("skipLoginCheck", true)
-                                startActivity(intent)
-                                finish()
-                            } else {
-                                val message = jsonResponse.optString("message", "Вход не удался")
-                                showToast(message)
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Login JSON parse error", e)
                             }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Login JSON parse error", e)
-                            // Если парсинг упал — делаем fallback: считаем вход выполненным
-                            val editor = sharedPreferences.edit()
-                            editor.putString("email", email)
-                            editor.putBoolean("isLoggedIn", true)
-                            editor.commit()
-
-                            showToast("Вход выполнен (не удалось распарсить ответ).")
-                            val intent = Intent(this@MainActivityLogin, MainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            intent.putExtra("skipLoginCheck", true)
-                            startActivity(intent)
-                            finish()
                         }
-                    } else {
-                        // Вход неуспешен — обрабатываем ошибки
-                        // Если сервер может вернуть 401/400/409 и т.д. — handleErrorResponse покроет их
-                        handleErrorResponse(response, responseBody)
+
+                        editor.apply()
+
+                        val intent = Intent(this@MainActivityLogin, MainActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        intent.putExtra("skipLoginCheck", true)
+                        startActivity(intent)
+                        finish()
                     }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Auto-login error", e)
-                withContext(Dispatchers.Main) {
-                    showToast("Ошибка автоматического входа")
-                }
             }
         }
-    }
-
-    private fun handleErrorResponse(response: okhttp3.Response, responseBody: String?) {
-        when (response.code) {
-            400 -> {
-                try {
-                    val errorJson = JSONObject(responseBody ?: "{}")
-                    val message = errorJson.optString("message", "Некорректный запрос")
-                    showToast("Ошибка: $message")
-                } catch (e: Exception) {
-                    showToast("Ошибка 400: Некорректный запрос")
-                }
-            }
-            401 -> {
-                try {
-                    val errorJson = JSONObject(responseBody ?: "{}")
-                    val message = errorJson.optString("message", "Неверный email или пароль")
-                    showToast(message)
-                } catch (e: Exception) {
-                    showToast("Неверный email или пароль")
-                }
-            }
-            409 -> showToast("Пользователь с таким email уже существует")
-            500 -> showToast("Ошибка сервера. Попробуйте позже")
-            else -> showToast("Ошибка сервера: ${response.code}")
-        }
-    }
-
-    private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
-

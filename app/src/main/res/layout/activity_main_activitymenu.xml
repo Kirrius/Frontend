@@ -47,7 +47,7 @@
         android:layout_height="71dp"
         android:backgroundTint="@color/reg_button_colour"
         android:onClick="par"
-        android:text="параметры"
+        android:text="Параметры"
         android:textColor="@color/ssc"
         android:textColorLink="@color/black"
         android:textSize="20dp"

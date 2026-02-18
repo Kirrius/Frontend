@@ -30,7 +30,7 @@ class MainActivitylogin2 : AppCompatActivity() {
     private lateinit var togglePasswordVisibilitySwitch2: Switch
 
     // Адрес вашего локального сервера (поставьте ваш IP)
-    private val BASE_URL = "http://192.168.1.108:5000"
+    private val BASE_URL = "http://192.168.1.107:5000"
 
     private val client = OkHttpClient()
     private val sharedPreferences by lazy { getSharedPreferences("MyPrefs", MODE_PRIVATE) }
@@ -103,7 +103,7 @@ class MainActivitylogin2 : AppCompatActivity() {
                 val requestBody = jsonBody.toRequestBody(mediaType)
 
                 val request = Request.Builder()
-                    .url("$BASE_URL/auth/login")
+                    .url("$BASE_URL/api/login")
                     .post(requestBody)
                     .addHeader("Content-Type", "application/json")
                     .build()

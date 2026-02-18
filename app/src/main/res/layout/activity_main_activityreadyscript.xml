@@ -25,8 +25,8 @@
 
     <Switch
         android:id="@+id/switch2"
-        android:layout_width="149dp"
-        android:layout_height="49dp"
+        android:layout_width="203dp"
+        android:layout_height="46dp"
         android:text="Полив"
         android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -40,14 +40,14 @@
         android:id="@+id/switch3"
         android:layout_width="203dp"
         android:layout_height="46dp"
-        android:text="Уведомления о поливе"
+        android:text="Освещённость"
         android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.076"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.525" />
+        app:layout_constraintVertical_bias="0.52" />
 
     <TextView
         android:id="@+id/textView13"
@@ -245,7 +245,7 @@
         app:layout_constraintHorizontal_bias="0.953"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.912"
+        app:layout_constraintVertical_bias="0.911"
         app:srcCompat="@drawable/__1__1_" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

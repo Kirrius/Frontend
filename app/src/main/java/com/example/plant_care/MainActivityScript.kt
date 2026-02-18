@@ -13,6 +13,7 @@ class MainActivityScript : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main_script)
+        val nameRost = intent.getStringExtra("PLANT_NAME")
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -21,12 +22,16 @@ class MainActivityScript : AppCompatActivity() {
     }
 
     fun startreadyscript(v: View) {
+        val nameRost = intent.getStringExtra("PLANT_NAME")
         val intent = Intent(this, MainActivityreadyscript::class.java)
+        intent.putExtra("PLANT_NAME", nameRost)
         startActivity(intent)
     }
 
     fun startready_made(v: View){
+        val nameRost = intent.getStringExtra("PLANT_NAME")
         val intent = Intent(this, MainActivityReady_madeScript::class.java)
+        intent.putExtra("PLANT_NAME", nameRost)
         startActivity(intent)
     }
 

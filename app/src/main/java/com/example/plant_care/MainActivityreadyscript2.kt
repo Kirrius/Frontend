@@ -2,7 +2,6 @@ package com.example.plant_care
 
 import android.content.Context
 import android.content.Intent
-import android.media.Image
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -34,48 +33,92 @@ class MainActivityreadyscript2 : AppCompatActivity() {
     private lateinit var TempButton: Button
     private lateinit var vlevoButton: ImageButton
 
-    val textAir = "    Условия для влажности воздуха:\n" +
+    private val textAir = "    Условия для влажности воздуха:\n" +
             "   - Если уровень влажности воздуха < m1%:\n" +
             "   - Отправить уведомление.\n" +
             "   - Если уровень влажности воздуха > m2%.\n" +
             "   - Отправить уведомление.\n"
 
-    val textm1 = "введите\nm1:"
-    val textm2 = "введите\nm2:"
+    private val textm1 = "введите\nm1:"
+    private val textm2 = "введите\nm2:"
 
-    val textAirTemp = "    Условия для температуры воздуха:\n" +
+    private val textAirTemp = "    Условия для температуры воздуха:\n" +
             "   - Если уровень температуры воздуха < t1%:\n" +
             "   - Отправить уведомление.\n" +
             "   - Если уровень температуры воздуха > t2%.\n" +
             "   - Отправить уведомление.\n"
 
-    val textt1 = "введите\nt1:"
-    val textt2 = "введите\nt2:"
+    private val textt1 = "введите\nt1:"
+    private val textt2 = "введите\nt2:"
 
-    private val REQUEST_CODE = 1 // Код запроса для идентификации результата
+    // ИЗМЕНЕНО: Используем Float вместо Int
+    private var currentM1: String = ""
+    private var currentM2: String = ""
+    private var currentT1: String = ""
+    private var currentT2: String = ""
+    private var currentM1Float: Float = -1f  // Float вместо Int
+    private var currentM2Float: Float = -1f  // Float вместо Int
+    private var currentT1Float: Float = -1f  // Float вместо Int
+    private var currentT2Float: Float = -1f  // Float вместо Int
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main_activityreadyscript2)
 
-        var m1 = intent.getStringExtra("m1") ?: ""
-        var m2 = intent.getStringExtra("m2") ?: ""
-        var n1 = intent.getStringExtra("n1") ?: ""
-        var n2 = intent.getStringExtra("n2") ?: ""
-        var n1v = intent.getStringExtra("n1v") ?: ""
-        var n2v = intent.getStringExtra("n2v") ?: ""
-        var t1 = intent.getStringExtra("t1") ?: ""
-        var t2 = intent.getStringExtra("t2") ?: ""
-        var t1Int = intent.getIntExtra("t1Int", -1)
-        var t2Int = intent.getIntExtra("t2Int", -1)
-        var m1Int = intent.getIntExtra("m1Int", -1)
-        var m2Int = intent.getIntExtra("m2Int", -1)
-        var wateringswitchState = intent.getBooleanExtra("wateringswitchState", false)
-        var wateringswitchuvState = intent.getBooleanExtra("wateringswitchuvState", false)
-        var AirHumiditySwitchState = intent.getBooleanExtra("AirHumidityswitchState", false)
-        var TempSwitchState = intent.getBooleanExtra("TempswitchState", false)
+        // Получаем данные из Intent
+        currentM1 = intent.getStringExtra("min_humidity") ?: ""
+        currentM2 = intent.getStringExtra("max_humidity") ?: ""
+        var n1 = intent.getStringExtra("min_soil_moisture") ?: ""
+        var n2 = intent.getStringExtra("max_soil_moisture") ?: ""
+        var l1 = intent.getStringExtra("min_light_lux") ?: ""
+        var l2 = intent.getStringExtra("max_light_lux") ?: ""
+        currentT1 = intent.getStringExtra("min_temperature") ?: ""
+        currentT2 = intent.getStringExtra("max_temperature") ?: ""
 
+        // ИЗМЕНЕНО: Получаем Float значения (с поддержкой старых Int для обратной совместимости)
+        currentT1Float = intent.getFloatExtra("t1Float", -1f)
+        currentT2Float = intent.getFloatExtra("t2Float", -1f)
+        currentM1Float = intent.getFloatExtra("m1Float", -1f)
+        currentM2Float = intent.getFloatExtra("m2Float", -1f)
+
+        // Для обратной совместимости: если Float не получены, пробуем получить Int и конвертировать
+        if (currentT1Float == -1f) {
+            val t1Int = intent.getIntExtra("t1Int", -1)
+            if (t1Int != -1) currentT1Float = t1Int.toFloat()
+        }
+        if (currentT2Float == -1f) {
+            val t2Int = intent.getIntExtra("t2Int", -1)
+            if (t2Int != -1) currentT2Float = t2Int.toFloat()
+        }
+        if (currentM1Float == -1f) {
+            val m1Int = intent.getIntExtra("m1Int", -1)
+            if (m1Int != -1) currentM1Float = m1Int.toFloat()
+        }
+        if (currentM2Float == -1f) {
+            val m2Int = intent.getIntExtra("m2Int", -1)
+            if (m2Int != -1) currentM2Float = m2Int.toFloat()
+        }
+
+        // Преобразуем Float в String для отображения в EditText
+        if (currentM1.isEmpty() && currentM1Float != -1f) {
+            currentM1 = currentM1Float.toString()
+        }
+        if (currentM2.isEmpty() && currentM2Float != -1f) {
+            currentM2 = currentM2Float.toString()
+        }
+        if (currentT1.isEmpty() && currentT1Float != -1f) {
+            currentT1 = currentT1Float.toString()
+        }
+        if (currentT2.isEmpty() && currentT2Float != -1f) {
+            currentT2 = currentT2Float.toString()
+        }
+
+        val plantName = intent.getStringExtra("PLANT_NAME") ?: "Неизвестное растение"
+        val AirHumiditySwitchState = intent.getBooleanExtra("AirHumidityswitchState", false)
+        val TempSwitchState = intent.getBooleanExtra("TempswitchState", false)
+
+        // Инициализация UI элементов
         AirHumiditySwitch = findViewById(R.id.switch1)
         TempSwitch = findViewById(R.id.switch4)
         AirHumidityTextView = findViewById(R.id.textView12)
@@ -92,229 +135,171 @@ class MainActivityreadyscript2 : AppCompatActivity() {
         TempButton = findViewById(R.id.button12)
         vlevoButton = findViewById(R.id.imageButton2)
 
+        // Устанавливаем начальное состояние Switch
         AirHumiditySwitch.isChecked = AirHumiditySwitchState
         TempSwitch.isChecked = TempSwitchState
 
-        if (AirHumiditySwitch.isChecked){
-            AirHumidityTextView.text = textAir // Устанавливаем текст при включении
-            AirHumiditym1TextView.text = textm1
-            AirHumiditym2TextView.text = textm2
-            AirHumiditym1TextView.visibility = View.VISIBLE
-            AirHumiditym2TextView.visibility = View.VISIBLE
-            AirHumidityButton.visibility = View.VISIBLE // Показываем кнопку
-            AirHumidityTextView.visibility = View.VISIBLE // Показываем текст
-            AirHumiditym1EditText.visibility = View.VISIBLE // Показываем EditText
-            AirHumiditym2EditText.visibility = View.VISIBLE // Показываем EditText
-            AirHumiditym1EditText.setText(m1)
-            AirHumiditym2EditText.setText(m2)
-            AirHumidityButton.setOnClickListener {
-                m1 = AirHumiditym1EditText.text.toString()
-                m2 = AirHumiditym2EditText.text.toString()
+        // Заполняем EditText текущими значениями
+        AirHumiditym1EditText.setText(currentM1)
+        AirHumiditym2EditText.setText(currentM2)
+        TempEditText1.setText(currentT1)
+        TempEditText2.setText(currentT2)
 
-                m1Int = m1.toIntOrNull() ?: -1
-                m2Int = m2.toIntOrNull() ?: - 1
+        // Устанавливаем начальную видимость элементов
+        updateAirHumidityVisibility(AirHumiditySwitch.isChecked)
+        updateTempVisibility(TempSwitch.isChecked)
 
-                if(m1Int == -1 || m2Int == -1) {
-                    Toast.makeText(this, "Пожалуйста, введите корректные значения", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            AirHumiditySwitch.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    AirHumidityTextView.text = textAir // Устанавливаем текст при включении
-                    AirHumiditym1TextView.text = textm1
-                    AirHumiditym2TextView.text = textm2
-                    AirHumiditym1TextView.visibility = View.VISIBLE
-                    AirHumiditym2TextView.visibility = View.VISIBLE
-                    AirHumidityButton.visibility = View.VISIBLE // Показываем кнопку
-                    AirHumidityTextView.visibility = View.VISIBLE // Показываем текст
-                    AirHumiditym1EditText.visibility = View.VISIBLE // Показываем EditText
-                    AirHumiditym2EditText.visibility = View.VISIBLE // Показываем EditText
-                    AirHumiditym1EditText.setText(m1)
-                    AirHumiditym2EditText.setText(m2)
-                    AirHumidityButton.setOnClickListener {
-                        m1 = AirHumiditym1EditText.text.toString()
-                        m2 = AirHumiditym2EditText.text.toString()
-
-                        m1Int = m1.toIntOrNull() ?: -1
-                        m2Int = m2.toIntOrNull() ?: - 1
-
-                        if(m1Int == -1 || m2Int == -1) {
-                            Toast.makeText(this, "Пожалуйста, введите корректные значения", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-
-                } else {
-                    AirHumidityTextView.visibility = View.GONE // Скрываем текст
-                    AirHumiditym1TextView.visibility = View.GONE // Скрываем текст
-                    AirHumiditym2TextView.visibility = View.GONE // Скрываем текст
-                    AirHumiditym1EditText.visibility = View.GONE // Скрываем EditText
-                    AirHumiditym2EditText.visibility = View.GONE // Скрываем EditText
-                    AirHumidityButton.visibility = View.GONE // Скрываем кнопку
-                }
-            }
-        }
-
+        // Обработчики для Switch
         AirHumiditySwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                AirHumidityTextView.text = textAir // Устанавливаем текст при включении
-                AirHumiditym1TextView.text = textm1
-                AirHumiditym2TextView.text = textm2
-                AirHumiditym1TextView.visibility = View.VISIBLE
-                AirHumiditym2TextView.visibility = View.VISIBLE
-                AirHumidityButton.visibility = View.VISIBLE // Показываем кнопку
-                AirHumidityTextView.visibility = View.VISIBLE // Показываем текст
-                AirHumiditym1EditText.visibility = View.VISIBLE // Показываем EditText
-                AirHumiditym2EditText.visibility = View.VISIBLE // Показываем EditText
-                AirHumiditym1EditText.setText(m1)
-                AirHumiditym2EditText.setText(m2)
-                AirHumidityButton.setOnClickListener {
-                    m1 = AirHumiditym1EditText.text.toString()
-                    m2 = AirHumiditym2EditText.text.toString()
-
-                    m1Int = m1.toIntOrNull() ?: -1
-                    m2Int = m2.toIntOrNull() ?: - 1
-
-                    if(m1Int == -1 || m2Int == -1) {
-                        Toast.makeText(this, "Пожалуйста, введите корректные значения", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-            } else {
-                AirHumidityTextView.visibility = View.GONE // Скрываем текст
-                AirHumiditym1TextView.visibility = View.GONE // Скрываем текст
-                AirHumiditym2TextView.visibility = View.GONE // Скрываем текст
-                AirHumiditym1EditText.visibility = View.GONE // Скрываем EditText
-                AirHumiditym2EditText.visibility = View.GONE // Скрываем EditText
-                AirHumidityButton.visibility = View.GONE // Скрываем кнопку
-            }
-        }
-
-        if (TempSwitch.isChecked) {
-            TempTextView.text = textAirTemp // Устанавливаем текст при включении
-            TempTextViewt1.text = textt1
-            TempTextViewt2.text = textt2
-            TempTextViewt1.visibility = View.VISIBLE
-            TempTextViewt2.visibility = View.VISIBLE
-            TempTextView.visibility = View.VISIBLE
-            TempButton.visibility = View.VISIBLE // Показываем кнопку
-            TempEditText1.visibility = View.VISIBLE // Показываем EditText
-            TempEditText2.visibility = View.VISIBLE // Показываем EditText
-            TempEditText1.setText(t1)
-            TempEditText2.setText(t2)
-            TempButton.setOnClickListener {
-                t1 = TempEditText1.text.toString()
-                t2 = TempEditText2.text.toString()
-
-                t1Int = t1.toIntOrNull() ?: -1
-                t2Int = t2.toIntOrNull() ?: -1
-
-                if (t1Int == -1 || t2Int == -1){
-                    Toast.makeText(this, "Пожалуйста, введите корректные значения", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            TempSwitch.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    TempTextView.text = textAirTemp // Устанавливаем текст при включении
-                    TempTextViewt1.text = textt1
-                    TempTextViewt2.text = textt2
-                    TempTextViewt1.visibility = View.VISIBLE
-                    TempTextViewt2.visibility = View.VISIBLE
-                    TempTextView.visibility = View.VISIBLE
-                    TempButton.visibility = View.VISIBLE // Показываем кнопку
-                    TempEditText1.visibility = View.VISIBLE // Показываем EditText
-                    TempEditText2.visibility = View.VISIBLE // Показываем EditText
-                    TempEditText1.setText(t1)
-                    TempEditText2.setText(t2)
-                    TempButton.setOnClickListener {
-                        t1 = TempEditText1.text.toString()
-                        t2 = TempEditText2.text.toString()
-
-                        t1Int = t1.toIntOrNull() ?: -1
-                        t2Int = t2.toIntOrNull() ?: -1
-
-                        if (t1Int == -1 || t2Int == -1){
-                            Toast.makeText(this, "Пожалуйста, введите корректные значения", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-
-                } else {
-                    TempTextView.visibility = View.GONE // Скрываем текст
-                    TempTextViewt1.visibility = View.GONE // Скрываем текст
-                    TempTextViewt2.visibility = View.GONE // Скрываем текст
-                    TempEditText1.visibility = View.GONE // Скрываем EditText
-                    TempEditText2.visibility = View.GONE // Скрываем EditText
-                    TempButton.visibility = View.GONE // Скрываем кнопку
-                }
-            }
+            updateAirHumidityVisibility(isChecked)
         }
 
         TempSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                TempTextView.text = textAirTemp // Устанавливаем текст при включении
-                TempTextViewt1.text = textt1
-                TempTextViewt2.text = textt2
-                TempTextViewt1.visibility = View.VISIBLE
-                TempTextViewt2.visibility = View.VISIBLE
-                TempTextView.visibility = View.VISIBLE
-                TempButton.visibility = View.VISIBLE // Показываем кнопку
-                TempEditText1.visibility = View.VISIBLE // Показываем EditText
-                TempEditText2.visibility = View.VISIBLE // Показываем EditText
-                TempEditText1.setText(t1)
-                TempEditText2.setText(t2)
-                TempButton.setOnClickListener {
-                    t1 = TempEditText1.text.toString()
-                    t2 = TempEditText2.text.toString()
-
-                    t1Int = t1.toIntOrNull() ?: -1
-                    t2Int = t2.toIntOrNull() ?: -1
-
-                    if (t1Int == -1 || t2Int == -1){
-                        Toast.makeText(this, "Пожалуйста, введите корректные значения", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-            } else {
-                TempTextView.visibility = View.GONE // Скрываем текст
-                TempTextViewt1.visibility = View.GONE // Скрываем текст
-                TempTextViewt2.visibility = View.GONE // Скрываем текст
-                TempEditText1.visibility = View.GONE // Скрываем EditText
-                TempEditText2.visibility = View.GONE // Скрываем EditText
-                TempButton.visibility = View.GONE // Скрываем кнопку
-            }
+            updateTempVisibility(isChecked)
         }
 
+        // Обработчики для кнопок сохранения
+        AirHumidityButton.setOnClickListener {
+            saveAirHumidityValues()
+        }
 
-        vlevoButton.setOnClickListener{
-            var intent = Intent(this, MainActivityreadyscript::class.java)
+        TempButton.setOnClickListener {
+            saveTempValues()
+        }
+
+        // Обработчик кнопки "назад"
+        vlevoButton.setOnClickListener {
+            // Сохраняем текущие значения перед возвратом
+            if (AirHumiditySwitch.isChecked) {
+                saveAirHumidityValues()
+            }
+            if (TempSwitch.isChecked) {
+                saveTempValues()
+            }
+
+            val intent = Intent()
+
+            // Передаем данные обратно
             intent.putExtra("n1", n1)
             intent.putExtra("n2", n2)
-            intent.putExtra("n1v", n1v)
-            intent.putExtra("n2v", n2v)
-            intent.putExtra("wateringswitchState", wateringswitchState)
-            intent.putExtra("wateringswitchuvState", wateringswitchuvState)
-            intent.putExtra("m1", m1)
-            intent.putExtra("m2", m2)
-            intent.putExtra("t1", t1)
-            intent.putExtra("t2", t2)
-            intent.putExtra("t1Int", t1Int)
-            intent.putExtra("t2Int", t2Int)
-            intent.putExtra("m1Int", m1Int)
-            intent.putExtra("m2Int", m2Int)
-            intent.putExtra("AirHumidityswitchState", AirHumiditySwitch.isChecked) // Передаем состояние свитча
+           // intent.putExtra("wateringswitchState", wateringswitchState)
+           // intent.putExtra("lightState", lightState)
+
+            // Передаем строковые значения (для совместимости)
+            intent.putExtra("m1", currentM1)
+            intent.putExtra("m2", currentM2)
+            intent.putExtra("t1", currentT1)
+            intent.putExtra("t2", currentT2)
+
+            // ИЗМЕНЕНО: Передаем Float значения
+            intent.putExtra("t1Float", currentT1Float)
+            intent.putExtra("t2Float", currentT2Float)
+            intent.putExtra("m1Float", currentM1Float)
+            intent.putExtra("m2Float", currentM2Float)
+
+            // Также передаем для обратной совместимости Int значения
+            intent.putExtra("t1Int", currentT1Float.toInt())
+            intent.putExtra("t2Int", currentT2Float.toInt())
+            intent.putExtra("m1Int", currentM1Float.toInt())
+            intent.putExtra("m2Int", currentM2Float.toInt())
+
+            // Передаем состояние Switch
+            intent.putExtra("AirHumidityswitchState", AirHumiditySwitch.isChecked)
             intent.putExtra("TempswitchState", TempSwitch.isChecked)
-            // Toast.makeText(this, "$m1", Toast.LENGTH_SHORT).show()
-           // Toast.makeText(this, "$AirHumiditySwitchState", Toast.LENGTH_SHORT).show()
-           // Toast.makeText(this, "$m2", Toast.LENGTH_SHORT).show()
-            setResult(RESULT_OK, intent) // Устанавливаем результат
-            onBackPressed()
+
+            // Передаем название растения
+            intent.putExtra("PLANT_NAME", plantName)
+
+            // Передаем с новыми ключами (для MainActivityreadyscript)
+            intent.putExtra("min_humidity", currentM1)
+            intent.putExtra("max_humidity", currentM2)
+            intent.putExtra("min_temperature", currentT1)
+            intent.putExtra("max_temperature", currentT2)
+
+            setResult(RESULT_OK, intent)
+            finish() // Закрываем Activity
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+    }
+
+    // Метод для обновления видимости элементов влажности
+    private fun updateAirHumidityVisibility(isVisible: Boolean) {
+        if (isVisible) {
+            AirHumidityTextView.text = textAir
+            AirHumiditym1TextView.text = textm1
+            AirHumiditym2TextView.text = textm2
+            AirHumiditym1TextView.visibility = View.VISIBLE
+            AirHumiditym2TextView.visibility = View.VISIBLE
+            AirHumidityButton.visibility = View.VISIBLE
+            AirHumidityTextView.visibility = View.VISIBLE
+            AirHumiditym1EditText.visibility = View.VISIBLE
+            AirHumiditym2EditText.visibility = View.VISIBLE
+        } else {
+            AirHumidityTextView.visibility = View.GONE
+            AirHumiditym1TextView.visibility = View.GONE
+            AirHumiditym2TextView.visibility = View.GONE
+            AirHumiditym1EditText.visibility = View.GONE
+            AirHumiditym2EditText.visibility = View.GONE
+            AirHumidityButton.visibility = View.GONE
+        }
+    }
+
+    // Метод для обновления видимости элементов температуры
+    private fun updateTempVisibility(isVisible: Boolean) {
+        if (isVisible) {
+            TempTextView.text = textAirTemp
+            TempTextViewt1.text = textt1
+            TempTextViewt2.text = textt2
+            TempTextViewt1.visibility = View.VISIBLE
+            TempTextViewt2.visibility = View.VISIBLE
+            TempTextView.visibility = View.VISIBLE
+            TempButton.visibility = View.VISIBLE
+            TempEditText1.visibility = View.VISIBLE
+            TempEditText2.visibility = View.VISIBLE
+        } else {
+            TempTextView.visibility = View.GONE
+            TempTextViewt1.visibility = View.GONE
+            TempTextViewt2.visibility = View.GONE
+            TempEditText1.visibility = View.GONE
+            TempEditText2.visibility = View.GONE
+            TempButton.visibility = View.GONE
+        }
+    }
+
+    // ИЗМЕНЕНО: Метод для сохранения значений влажности с Float
+    private fun saveAirHumidityValues() {
+        currentM1 = AirHumiditym1EditText.text.toString()
+        currentM2 = AirHumiditym2EditText.text.toString()
+
+        // ИЗМЕНЕНО: toFloatOrNull вместо toIntOrNull
+        currentM1Float = currentM1.toFloatOrNull() ?: -1f
+        currentM2Float = currentM2.toFloatOrNull() ?: -1f
+
+        if (currentM1Float == -1f || currentM2Float == -1f) {
+            Toast.makeText(this, "Пожалуйста, введите корректные значения", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Значения сохранены: m1=$currentM1Float, m2=$currentM2Float", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // ИЗМЕНЕНО: Метод для сохранения значений температуры с Float
+    private fun saveTempValues() {
+        currentT1 = TempEditText1.text.toString()
+        currentT2 = TempEditText2.text.toString()
+
+        // ИЗМЕНЕНО: toFloatOrNull вместо toIntOrNull
+        currentT1Float = currentT1.toFloatOrNull() ?: -1f
+        currentT2Float = currentT2.toFloatOrNull() ?: -1f
+
+        if (currentT1Float == -1f || currentT2Float == -1f) {
+            Toast.makeText(this, "Пожалуйста, введите корректные значения", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Значения сохранены: t1=$currentT1Float, t2=$currentT2Float", Toast.LENGTH_SHORT).show()
         }
     }
 }

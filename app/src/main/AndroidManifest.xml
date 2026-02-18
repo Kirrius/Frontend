@@ -11,6 +11,7 @@
 
     <application
         android:allowBackup="true"
+        android:usesCleartextTraffic="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/iconn"
@@ -19,7 +20,6 @@
         android:roundIcon="@mipmap/iconn_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Plant_care"
-        android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
             android:name=".MainActivityInput2"
@@ -66,7 +66,7 @@
             android:theme="@style/Theme.Plant_care" />
         <activity
             android:name=".MainActivitymenu"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/title_activity_main_activitymenu"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Plant_care" />
