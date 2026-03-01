@@ -55,9 +55,9 @@ class MainActivityreadyscript : AppCompatActivity() {
 
     private val textlight = "    Условия для освещения:\n" +
             "   - Если уровень освещенности < l1 люкс:\n" +
-            "   - Включить фитолампу.\n" +
+            "   - Отправить уведомление.\n" +
             "   - Досвечивать до достижения уровня > l2 люкс.\n" +
-            "   - Выключить фитолампу.\n"
+            "   - Отправить уведомление.\n"
 
     private val textn1 = "введите\nn1:"
     private val textn2 = "введите\nn2:"

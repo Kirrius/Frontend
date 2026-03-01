@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:backgroundTint="@color/menu"
+    android:background="@drawable/klever"
     android:padding="16dp"
     tools:context=".MainActivityParametr">
 
@@ -14,6 +14,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Освещённость (лк)"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
+        android:textColorLink="@color/black"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -23,6 +26,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="0 лк"
+        android:textColor="@color/black"
         android:textSize="16sp"
         app:layout_constraintBaseline_toBaselineOf="@id/lightLabel"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -33,6 +37,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Влажность почвы (%)"
+        android:textColor="@color/black"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/lightLabel" />
@@ -42,6 +47,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="0%"
+        android:textColor="@color/black"
         android:textSize="16sp"
         app:layout_constraintBaseline_toBaselineOf="@id/soilLabel"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -51,6 +57,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Температура (°C)"
+        android:textColor="@color/black"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/soilLabel" />
@@ -60,6 +67,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="0.0 °C"
+        android:textColor="@color/black"
         android:textSize="16sp"
         app:layout_constraintBaseline_toBaselineOf="@id/tempLabel"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -69,6 +77,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Влажность воздуха (%)"
+        android:textColor="@color/black"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tempLabel" />
@@ -79,6 +88,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="56dp"
         android:text="Активация насоса"
+        android:textColor="@color/black"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tempLabel" />
@@ -88,6 +98,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="0.0%"
+        android:textColor="@color/black"
         android:textSize="16sp"
         app:layout_constraintBaseline_toBaselineOf="@id/humidityLabel"
         app:layout_constraintEnd_toEndOf="parent" />

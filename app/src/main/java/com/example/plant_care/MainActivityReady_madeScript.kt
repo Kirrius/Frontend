@@ -25,7 +25,6 @@ import java.io.InputStreamReader
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import okhttp3.*
 
 class MainActivityReady_madeScript : AppCompatActivity() {
     private lateinit var scenariosRecyclerView: RecyclerView
@@ -36,30 +35,28 @@ class MainActivityReady_madeScript : AppCompatActivity() {
     private lateinit var adapter: ScenarioAdapter
     private lateinit var progressDialog: ProgressDialog
 
-    // ИЗМЕНЕНИЕ 1: Сделаем переменные nullable и инициализируем в onCreate
     private var plantName: String = ""
     private var userEmail: String = ""
 
     private val scenarioIdMap = mapOf(
-        // Старые ID были 1-18, новые ID 12-29
-        "Тропики" to 12,          // было: to 1
-        "Зеленая оазис" to 13,    // было: to 2
-        "Экзотический сад" to 14, // было: to 3
-        "Моховой уголок" to 15,   // было: to 4
-        "Комнатный уют" to 16,    // было: to 5
-        "Теплый тропик" to 17,    // было: to 6
-        "Лесная тень" to 18,      // было: to 7
-        "Светлый уголок" to 19,   // было: to 8
-        "Солнечный сад" to 20,    // было: to 9
-        "Холодный уют" to 21,     // было: to 10
-        "Умеренный климат" to 22, // было: to 11
-        "Сухая пустыня" to 23,    // было: to 12
-        "Моховой лес" to 24,      // было: to 13
-        "Сухой оазис" to 25,      // было: to 14
-        "Пустынный цветок" to 26, // было: to 15
-        "Холодная пустыня" to 27, // было: to 16
-        "Сухая равнина" to 28,    // было: to 17
-        "Жаркая пустыня" to 29    // было: to 18
+        "Тропики" to 12,
+        "Зеленая оазис" to 13,
+        "Экзотический сад" to 14,
+        "Моховой уголок" to 15,
+        "Комнатный уют" to 16,
+        "Теплый тропик" to 17,
+        "Лесная тень" to 18,
+        "Светлый уголок" to 19,
+        "Солнечный сад" to 20,
+        "Холодный уют" to 21,
+        "Умеренный климат" to 22,
+        "Сухая пустыня" to 23,
+        "Моховой лес" to 24,
+        "Сухой оазис" to 25,
+        "Пустынный цветок" to 26,
+        "Холодная пустыня" to 27,
+        "Сухая равнина" to 28,
+        "Жаркая пустыня" to 29
     )
 
     private var pendingScenario: Scenario? = null
@@ -67,7 +64,6 @@ class MainActivityReady_madeScript : AppCompatActivity() {
     companion object {
         const val PREFS_NAME = "PlantCarePrefs"
         const val KEY_SELECTED_SCENARIO = "selected_scenario"
-        // ИЗМЕНЕНИЕ 2: Используйте правильный IP вашего сервера
         const val BASE_URL = "http://192.168.1.107:5000"
     }
 
@@ -96,37 +92,17 @@ class MainActivityReady_madeScript : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_ready_made_script)
 
-        // 1. Сначала получаем данные из Intent
         plantName = intent.getStringExtra("PLANT_NAME") ?: "Неизвестное растение"
-
-        // 2. Инициализируем sharedPref ПЕРВЫМ ДЕЛОМ
         sharedPref = getSharedPreferences("MyPrefs", MODE_PRIVATE)
-
-        // 3. ТЕПЕРЬ можем использовать sharedPref
-        // Получаем email: сначала из Intent, потом из SharedPreferences
         userEmail = sharedPref.getString("email", "") ?: ""
 
-            /*
-        // 4. Проверяем email
-        if (userEmail.isEmpty()) {
-            Toast.makeText(this, "Ошибка: email пользователя не найден", Toast.LENGTH_LONG).show()
-            finish()
-            return
-        }
-
-             */
-
-        // 4. ВЫВОДИМ EMAIL В КОНСОЛЬ (Logcat)
         Log.w("MainActivityReadyScript", "Полученный email: $userEmail")
         Log.w("MainActivityReadyScript", "Название растения: $plantName")
 
-        // 5. Сохраняем email в SharedPreferences для будущего использования
         sharedPref.edit().putString("email", userEmail).apply()
 
-        // 6. Устанавливаем заголовок
         supportActionBar?.title = "Выбор сценария для: $plantName"
 
-        // 7. Инициализируем остальные view
         scenariosRecyclerView = findViewById(R.id.scenariosRecyclerView)
         confirmSelectionBtn = findViewById(R.id.confirmSelectionBtn)
         cancelSelectionBtn = findViewById(R.id.cancelSelectionBtn)
@@ -212,8 +188,6 @@ class MainActivityReady_madeScript : AppCompatActivity() {
         }
 
         progressDialog.show()
-
-        // Запускаем фоновую задачу для отправки запроса
         SendScenarioTask().execute(userEmail, scenarioId.toString(), plantName, scenario.name)
     }
 
@@ -233,23 +207,21 @@ class MainActivityReady_madeScript : AppCompatActivity() {
                 connection.connectTimeout = 10000
                 connection.readTimeout = 10000
 
-                // Создаем JSON запрос
+                // Важно: device_id должен совпадать с тем, что отправляет ESP32
                 val json = """
                     {
                         "username": "$userEmail",
                         "scenario_id": $scenarioId,
                         "plant_name": "$plantName",
-                        "device_id": "esp32_default"
+                        "device_id": "ESP32_PlantMonitor"
                     }
                 """.trimIndent()
 
-                // Отправляем данные
                 val outputStream: OutputStream = connection.outputStream
                 outputStream.write(json.toByteArray(Charsets.UTF_8))
                 outputStream.flush()
                 outputStream.close()
 
-                // Получаем ответ
                 val responseCode = connection.responseCode
                 val inputStream = if (responseCode in 200..299) {
                     connection.inputStream
@@ -297,8 +269,12 @@ class MainActivityReady_madeScript : AppCompatActivity() {
 
                 if (success && responseCode in 200..299) {
                     pendingScenario?.let { scenario ->
-                        // Сохраняем локально
+                        // Сохраняем имя выбранного сценария
                         sharedPref.edit().putString(KEY_SELECTED_SCENARIO, scenario.name).apply()
+
+                        // Сохраняем правильный device_id для получения уведомлений
+                        sharedPref.edit().putString("device_id", "ESP32_PlantMonitor").apply()
+                        Log.d("MainActivityReady", "Сохранён device_id: ESP32_PlantMonitor")
 
                         Toast.makeText(
                             this@MainActivityReady_madeScript,
