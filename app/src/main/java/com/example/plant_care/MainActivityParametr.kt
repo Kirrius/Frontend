@@ -21,7 +21,7 @@ class MainActivityParametr : AppCompatActivity() {
     private lateinit var pumpButton: Button
 
     // ------------------- НОВОЕ: адрес сервера -------------------
-    private val serverBaseUrl = "http://192.168.1.107:5000"  // или "http://192.168.1.100:5000"
+    private val serverBaseUrl = "http://172.20.10.4:5000" // или "http://192.168.1.100:5000"
     private val deviceId = "ESP32_PlantMonitor"                    // должно совпадать с device_id в ESP
 
     // Для периодического обновления данных (polling)

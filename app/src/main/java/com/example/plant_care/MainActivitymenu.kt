@@ -37,7 +37,7 @@ class MainActivitymenu : AppCompatActivity() {
     private val scenariosList = mutableListOf<UserScenario>()
 
     companion object {
-        const val BASE_URL = "http://192.168.1.107:5000"  // тот же, что и в других активити
+        const val BASE_URL = "http://172.20.10.4:5000"  // тот же, что и в других активити
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

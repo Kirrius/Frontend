@@ -30,7 +30,7 @@ class MainActivitylogin2 : AppCompatActivity() {
     private lateinit var togglePasswordVisibilitySwitch2: Switch
 
     // Адрес вашего локального сервера (поставьте ваш IP)
-    private val BASE_URL = "http://192.168.1.107:5000"
+    private val BASE_URL = "http://172.20.10.4:5000"
 
     private val client = OkHttpClient()
     private val sharedPreferences by lazy { getSharedPreferences("MyPrefs", MODE_PRIVATE) }

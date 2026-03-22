@@ -64,7 +64,7 @@ class MainActivityReady_madeScript : AppCompatActivity() {
     companion object {
         const val PREFS_NAME = "PlantCarePrefs"
         const val KEY_SELECTED_SCENARIO = "selected_scenario"
-        const val BASE_URL = "http://192.168.1.107:5000"
+        const val BASE_URL = "http://172.20.10.4:5000"
     }
 
     private val scenarios = listOf(
