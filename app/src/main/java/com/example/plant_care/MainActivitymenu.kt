@@ -37,13 +37,15 @@ class MainActivitymenu : AppCompatActivity() {
     private val scenariosList = mutableListOf<UserScenario>()
 
     companion object {
-        const val BASE_URL = "http://172.20.10.4:5000"  // тот же, что и в других активити
+        const val BASE_URL = "https://plant-care.up.railway.app"  // тот же, что и в других активити
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main_activitymenu)
+
+        SensorCheckService.setupAlarmManager(this)
 
         // Инициализация views
         scenariosRecyclerView = findViewById(R.id.scenariosRecyclerView)

@@ -371,7 +371,7 @@ class MainActivityreadyscript : AppCompatActivity() {
 
         // 4. Создание запроса
         val request = Request.Builder()
-            .url("http://192.168.1.107:5000/api/scenarios")
+            .url("https://plant-care.up.railway.app/api/scenarios")
             .post(RequestBody.create("application/json; charset=utf-8".toMediaType(), json))
             .addHeader("Content-Type", "application/json")
             .build()

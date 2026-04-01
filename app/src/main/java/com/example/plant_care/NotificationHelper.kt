@@ -19,6 +19,8 @@ object NotificationHelper {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Канал для уведомлений о состоянии растений"
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0, 500, 200, 500)
             }
             val manager = context.getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
@@ -34,6 +36,7 @@ object NotificationHelper {
             .setSmallIcon(android.R.drawable.ic_dialog_info) // замените на свою иконку
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            .setVibrate(longArrayOf(0, 500, 200, 500))
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)

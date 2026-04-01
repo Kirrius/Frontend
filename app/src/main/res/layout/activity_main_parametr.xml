@@ -31,7 +31,6 @@
         app:layout_constraintBaseline_toBaselineOf="@id/lightLabel"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Аналогично для других датчиков -->
     <TextView
         android:id="@+id/soilLabel"
         android:layout_width="wrap_content"
@@ -83,17 +82,6 @@
         app:layout_constraintTop_toBottomOf="@id/tempLabel" />
 
     <TextView
-        android:id="@+id/humidityLabel2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="56dp"
-        android:text="Активация насоса"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tempLabel" />
-
-    <TextView
         android:id="@+id/humidityValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -103,19 +91,42 @@
         app:layout_constraintBaseline_toBaselineOf="@id/humidityLabel"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <TextView
+        android:id="@+id/pumpTitleLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Активация насоса"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/humidityLabel" />
+
     <Button
         android:id="@+id/button11"
         android:layout_width="168dp"
         android:layout_height="67dp"
+        android:layout_marginTop="16dp"
         android:backgroundTint="@color/reg_button_colour"
         android:text="Активировать"
         android:textColor="@color/black"
         android:textSize="17sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.175" />
+        app:layout_constraintTop_toBottomOf="@id/pumpTitleLabel" />
+
+    <!-- НОВЫЙ TextView для отображения таймера -->
+    <TextView
+        android:id="@+id/timerText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text=""
+        android:textColor="@android:color/holo_red_dark"
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/button11"
+        app:layout_constraintStart_toStartOf="@id/button11"
+        app:layout_constraintTop_toBottomOf="@id/button11" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
