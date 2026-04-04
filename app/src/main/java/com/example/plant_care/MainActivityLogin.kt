@@ -31,7 +31,7 @@ class MainActivityLogin : AppCompatActivity() {
     private lateinit var submitButton: Button
     private lateinit var togglePasswordVisibilitySwitch: Switch
 
-    private val BASE_URL = "http://192.168.1.107:5000"
+    private val BASE_URL = "https://plant-care.up.railway.app"
     private val client = OkHttpClient()
     private val sharedPreferences by lazy { getSharedPreferences("MyPrefs", MODE_PRIVATE) }
     private val TAG = "MainActivityLogin"
