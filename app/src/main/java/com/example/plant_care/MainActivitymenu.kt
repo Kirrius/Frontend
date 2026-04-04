@@ -25,9 +25,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-// Импортируем модели
-import com.example.plant_care.UserScenario
-import com.example.plant_care.SensorData
 
 class MainActivitymenu : AppCompatActivity() {
 
@@ -37,7 +34,7 @@ class MainActivitymenu : AppCompatActivity() {
     private val scenariosList = mutableListOf<UserScenario>()
 
     companion object {
-        const val BASE_URL = "https://plant-care.up.railway.app"  // тот же, что и в других активити
+        const val BASE_URL = "https://plant-care.up.railway.app"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,13 +42,9 @@ class MainActivitymenu : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main_activitymenu)
 
-        SensorCheckService.setupAlarmManager(this)
-
-        // Инициализация views
         scenariosRecyclerView = findViewById(R.id.scenariosRecyclerView)
         emptyListTextView = findViewById(R.id.emptyListTextView)
 
-        // Настройка RecyclerView
         scenariosRecyclerView.layoutManager = LinearLayoutManager(this)
         adapter = ScenariosAdapter(scenariosList)
         scenariosRecyclerView.adapter = adapter
@@ -62,7 +55,6 @@ class MainActivitymenu : AppCompatActivity() {
             insets
         }
 
-        // Запрос разрешения на уведомления для Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED
@@ -74,9 +66,6 @@ class MainActivitymenu : AppCompatActivity() {
                 )
             }
         }
-
-        // Устанавливаем AlarmManager для фоновой проверки
-        SensorCheckService.setupAlarmManager(this)
     }
 
     override fun onResume() {
@@ -109,7 +98,6 @@ class MainActivitymenu : AppCompatActivity() {
             return
         }
 
-        // Запускаем асинхронную задачу
         GetUserScenariosTask().execute(email)
     }
 
@@ -143,7 +131,6 @@ class MainActivitymenu : AppCompatActivity() {
                 }
                 reader.close()
 
-                // Парсим JSON
                 val jsonObject = JSONObject(response.toString())
                 if (!jsonObject.getBoolean("success")) {
                     return null
@@ -154,8 +141,6 @@ class MainActivitymenu : AppCompatActivity() {
 
                 for (i in 0 until scenariosArray.length()) {
                     val obj = scenariosArray.getJSONObject(i)
-
-                    // ПОЛУЧАЕМ ИМЯ ДЛЯ ОТОБРАЖЕНИЯ
                     val displayName = if (obj.has("display_name") && !obj.isNull("display_name")) {
                         obj.getString("display_name")
                     } else {
@@ -205,7 +190,6 @@ class MainActivitymenu : AppCompatActivity() {
         }
     }
 
-    // Обработчики кликов кнопок
     fun dob(v: View) {
         val intent = Intent(this, MainActivity2::class.java)
         startActivity(intent)
@@ -216,82 +200,47 @@ class MainActivitymenu : AppCompatActivity() {
         startActivity(intent)
     }
 
-    // Внутренний класс адаптера
     inner class ScenariosAdapter(
         private val scenarios: List<UserScenario>
     ) : RecyclerView.Adapter<ScenariosAdapter.ViewHolder>() {
 
-        init {
-            Log.d("ScenariosAdapter", "Adapter created with ${scenarios.size} scenarios")
-            scenarios.forEachIndexed { index, scenario ->
-                Log.d("ScenariosAdapter", "Scenario $index: ${scenario.name}")
-                Log.d("ScenariosAdapter", "  minSoil=${scenario.minSoil}, maxSoil=${scenario.maxSoil}")
-                Log.d("ScenariosAdapter", "  minHum=${scenario.minHum}, maxHum=${scenario.maxHum}")
-                Log.d("ScenariosAdapter", "  minTemp=${scenario.minTemp}, maxTemp=${scenario.maxTemp}")
-                Log.d("ScenariosAdapter", "  minLight=${scenario.minLight}, maxLight=${scenario.maxLight}")
-            }
-        }
-
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            private val nameTextView: TextView = itemView.findViewById(R.id.scenarioNameTextView)
-            private val paramsTextView: TextView = itemView.findViewById(R.id.scenarioParamsTextView)
-
-            fun bind(scenario: UserScenario) {
-                Log.d("ScenariosAdapter", "Binding scenario: ${scenario.name}")
-
-                nameTextView.text = scenario.name
-
-                val params = mutableListOf<String>()
-
-                // Влажность почвы
-                if (scenario.minSoil != 1000.0f && scenario.maxSoil != 1000.0f) {
-                    params.add("💧 Влажность почвы: ${scenario.minSoil}%–${scenario.maxSoil}%")
-                    Log.d("ScenariosAdapter", "Added soil param: ${scenario.minSoil}-${scenario.maxSoil}")
-                } else {
-                    Log.d("ScenariosAdapter", "Soil param skipped: ${scenario.minSoil}-${scenario.maxSoil}")
-                }
-
-                // Влажность воздуха
-                if (scenario.minHum != 1000.0f && scenario.maxHum != 1000.0f) {
-                    params.add("💨 Влажность воздуха: ${scenario.minHum}%–${scenario.maxHum}%")
-                }
-
-                // Температура
-                if (scenario.minTemp != 1000.0f && scenario.maxTemp != 1000.0f) {
-                    params.add("🌡️ Температура воздуха: ${scenario.minTemp}°C–${scenario.maxTemp}°C")
-                }
-
-                // Освещение
-                if (scenario.minLight != 1000.0f && scenario.maxLight != 1000.0f) {
-                    params.add("☀️ Освещённость: ${scenario.minLight}–${scenario.maxLight} лк")
-                }
-
-                val resultText = if (params.isNotEmpty()) {
-                    params.joinToString("\n") // Каждый параметр с новой строки
-                } else {
-                    "Нет заданных параметров"
-                }
-
-                Log.d("ScenariosAdapter", "Result text: $resultText")
-                paramsTextView.text = resultText
-            }
+            val nameTextView: TextView = itemView.findViewById(R.id.scenarioNameTextView)
+            val paramsTextView: TextView = itemView.findViewById(R.id.scenarioParamsTextView)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            Log.d("ScenariosAdapter", "onCreateViewHolder")
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_user_scenario, parent, false)
             return ViewHolder(view)
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            Log.d("ScenariosAdapter", "onBindViewHolder position $position")
-            holder.bind(scenarios[position])
+            val scenario = scenarios[position]
+            holder.nameTextView.text = scenario.name
+
+            val params = mutableListOf<String>()
+
+            if (scenario.minSoil != 1000.0f && scenario.maxSoil != 1000.0f) {
+                params.add("💧 Влажность почвы: ${scenario.minSoil}%–${scenario.maxSoil}%")
+            }
+            if (scenario.minHum != 1000.0f && scenario.maxHum != 1000.0f) {
+                params.add("💨 Влажность воздуха: ${scenario.minHum}%–${scenario.maxHum}%")
+            }
+            if (scenario.minTemp != 1000.0f && scenario.maxTemp != 1000.0f) {
+                params.add("🌡️ Температура воздуха: ${scenario.minTemp}°C–${scenario.maxTemp}°C")
+            }
+            if (scenario.minLight != 1000.0f && scenario.maxLight != 1000.0f) {
+                params.add("☀️ Освещённость: ${scenario.minLight}–${scenario.maxLight} лк")
+            }
+
+            holder.paramsTextView.text = if (params.isNotEmpty()) {
+                params.joinToString("\n")
+            } else {
+                "Нет заданных параметров"
+            }
         }
 
-        override fun getItemCount(): Int {
-            Log.d("ScenariosAdapter", "getItemCount = ${scenarios.size}")
-            return scenarios.size
-        }
+        override fun getItemCount(): Int = scenarios.size
     }
 }

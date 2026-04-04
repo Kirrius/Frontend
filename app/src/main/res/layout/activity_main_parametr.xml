@@ -1,132 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/klever"
-    android:padding="16dp"
-    tools:context=".MainActivityParametr">
+    android:padding="16dp">
 
-    <TextView
-        android:id="@+id/lightLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Освещённость (лк)"
-        android:textColor="@color/black"
-        android:textColorHint="@color/black"
-        android:textColorLink="@color/black"
-        android:textSize="18sp"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/sensorsRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/pumpTitleLabel"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/lightValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0 лк"
-        android:textColor="@color/black"
-        android:textSize="16sp"
-        app:layout_constraintBaseline_toBaselineOf="@id/lightLabel"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/soilLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Влажность почвы (%)"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/lightLabel" />
-
-    <TextView
-        android:id="@+id/soilValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0%"
-        android:textColor="@color/black"
-        android:textSize="16sp"
-        app:layout_constraintBaseline_toBaselineOf="@id/soilLabel"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/tempLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Температура (°C)"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/soilLabel" />
-
-    <TextView
-        android:id="@+id/tempValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0.0 °C"
-        android:textColor="@color/black"
-        android:textSize="16sp"
-        app:layout_constraintBaseline_toBaselineOf="@id/tempLabel"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/humidityLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Влажность воздуха (%)"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tempLabel" />
-
-    <TextView
-        android:id="@+id/humidityValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0.0%"
-        android:textColor="@color/black"
-        android:textSize="16sp"
-        app:layout_constraintBaseline_toBaselineOf="@id/humidityLabel"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
         android:id="@+id/pumpTitleLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginBottom="8dp"
         android:text="Активация насоса"
         android:textColor="@color/black"
         android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/humidityLabel" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/button11" />
 
     <Button
         android:id="@+id/button11"
-        android:layout_width="168dp"
-        android:layout_height="67dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:layout_marginBottom="8dp"
         android:backgroundTint="@color/reg_button_colour"
-        android:text="Активировать"
+        android:text="Включить насос"
         android:textColor="@color/black"
-        android:textSize="17sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pumpTitleLabel" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/timerText" />
 
-    <!-- НОВЫЙ TextView для отображения таймера -->
     <TextView
         android:id="@+id/timerText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text=""
+        android:layout_marginBottom="16dp"
         android:textColor="@android:color/holo_red_dark"
         android:textSize="14sp"
         android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="@id/button11"
-        app:layout_constraintStart_toStartOf="@id/button11"
-        app:layout_constraintTop_toBottomOf="@id/button11" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

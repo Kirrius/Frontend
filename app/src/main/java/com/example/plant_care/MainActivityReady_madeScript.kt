@@ -313,7 +313,7 @@ class MainActivityReady_madeScript : AppCompatActivity() {
 
         inner class ScenarioViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val nameTextView: TextView = itemView.findViewById(R.id.scenarioNameTextView)
-            val rootView: View = itemView.findViewById(R.id.rootLayout)
+            // Удалите строку с rootLayout, если она есть
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ScenarioViewHolder {
@@ -327,7 +327,8 @@ class MainActivityReady_madeScript : AppCompatActivity() {
             holder.nameTextView.text = scenario.name
 
             val isSelected = pendingScenario?.name == scenario.name
-            holder.rootView.setBackgroundColor(
+            // Используем holder.itemView вместо holder.rootView
+            holder.itemView.setBackgroundColor(
                 if (isSelected) ContextCompat.getColor(this@MainActivityReady_madeScript, R.color.selected_item_color)
                 else Color.TRANSPARENT
             )

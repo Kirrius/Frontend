@@ -4,21 +4,26 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
 class MainActivityParametr : AppCompatActivity() {
 
-    private lateinit var lightValueTv: TextView
-    private lateinit var soilValueTv: TextView
-    private lateinit var tempValueTv: TextView
-    private lateinit var humidityValueTv: TextView
+    private lateinit var sensorsRecyclerView: RecyclerView
+    private lateinit var adapter: SensorsAdapter
+    private val sensorsMap = mutableMapOf<String, Any>()
     private lateinit var pumpButton: Button
     private lateinit var timerText: TextView
+    private lateinit var progressBar: ProgressBar
 
     private val serverBaseUrl = "https://plant-care.up.railway.app"
     private val deviceId = "ESP32_PlantMonitor"
@@ -31,8 +36,8 @@ class MainActivityParametr : AppCompatActivity() {
     private val notificationInterval = 60000L
 
     private var isRequestInProgress = false
-    private var lastOffTime = 0L           // время последнего выключения (мс)
-    private val cooldownSeconds = 10        // задержка после выключения 10 секунд
+    private var lastOffTime = 0L
+    private val cooldownSeconds = 10
     private var countdownSeconds = 0
     private var countdownRunnable: Runnable? = null
 
@@ -40,12 +45,14 @@ class MainActivityParametr : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_parametr)
 
-        lightValueTv = findViewById(R.id.lightValue)
-        soilValueTv = findViewById(R.id.soilValue)
-        tempValueTv = findViewById(R.id.tempValue)
-        humidityValueTv = findViewById(R.id.humidityValue)
+        sensorsRecyclerView = findViewById(R.id.sensorsRecyclerView)
         pumpButton = findViewById(R.id.button11)
         timerText = findViewById(R.id.timerText)
+        progressBar = findViewById(R.id.progressBar)
+
+        sensorsRecyclerView.layoutManager = LinearLayoutManager(this)
+        adapter = SensorsAdapter(sensorsMap)
+        sensorsRecyclerView.adapter = adapter
 
         pumpButton.text = "Загрузка..."
         pumpButton.setOnClickListener { sendTogglePumpRequest() }
@@ -94,30 +101,54 @@ class MainActivityParametr : AppCompatActivity() {
                 conn.connectTimeout = 5000
                 conn.readTimeout = 5000
 
-                if (conn.responseCode == 200) {
+                val code = conn.responseCode
+                if (code == 200) {
                     val response = conn.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(response)
+
+                    // Получаем все датчики из поля sensors
+                    val sensorsJson = json.optJSONObject("sensors")
                     val pumpState = json.optBoolean("pump", false)
+
                     runOnUiThread {
-                        updateSensorValues(
-                            light = json.optInt("light", 0),
-                            soil = json.optInt("soil", 0),
-                            temp = json.optDouble("temp", Double.NaN),
-                            humidity = json.optDouble("humidity", Double.NaN)
-                        )
-                        updatePumpUI(pumpState)
+                        try {
+                            sensorsMap.clear()
+                            if (sensorsJson != null) {
+                                val keys = sensorsJson.keys()
+                                while (keys.hasNext()) {
+                                    val key = keys.next()
+                                    val value = sensorsJson.get(key)
+                                    if (key != "pump") {
+                                        sensorsMap[key] = value
+                                    }
+                                }
+                            }
+                            adapter.notifyDataSetChanged()
+                            updatePumpUI(pumpState)
+                            progressBar.visibility = View.GONE
+                        } catch (e: Exception) {
+                            Log.e("UI", "Update error: ${e.message}", e)
+                            Toast.makeText(this@MainActivityParametr, "Ошибка обновления: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 } else {
-                    Log.e("Polling", "HTTP error: ${conn.responseCode}")
+                    Log.e("Polling", "HTTP error: $code")
+                    runOnUiThread {
+                        progressBar.visibility = View.GONE
+                        Toast.makeText(this@MainActivityParametr, "Ошибка HTTP: $code", Toast.LENGTH_SHORT).show()
+                    }
                 }
                 conn.disconnect()
             } catch (e: Exception) {
-                Log.e("Polling", "Error: ${e.message}")
+                Log.e("Polling", "Error: ${e.message}", e)
+                runOnUiThread {
+                    progressBar.visibility = View.GONE
+                    Toast.makeText(this@MainActivityParametr, "Ошибка соединения: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         }.start()
     }
 
-    // Проверка: можно ли включать насос? (прошло ли 10 секунд с последнего выключения)
     private fun canTurnOn(): Boolean {
         val now = System.currentTimeMillis()
         val elapsedSeconds = (now - lastOffTime) / 1000
@@ -127,7 +158,7 @@ class MainActivityParametr : AppCompatActivity() {
     private fun startCountdown() {
         stopCountdown()
         countdownSeconds = cooldownSeconds
-        timerText.visibility = android.view.View.VISIBLE
+        timerText.visibility = View.VISIBLE
         timerText.text = "Подождите ${countdownSeconds} сек..."
 
         countdownRunnable = object : Runnable {
@@ -137,7 +168,7 @@ class MainActivityParametr : AppCompatActivity() {
                     timerText.text = "Подождите ${countdownSeconds} сек..."
                     handler.postDelayed(this, 1000)
                 } else {
-                    timerText.visibility = android.view.View.GONE
+                    timerText.visibility = View.GONE
                     countdownRunnable = null
                 }
             }
@@ -148,31 +179,30 @@ class MainActivityParametr : AppCompatActivity() {
     private fun stopCountdown() {
         countdownRunnable?.let { handler.removeCallbacks(it) }
         countdownRunnable = null
-        timerText.visibility = android.view.View.GONE
+        timerText.visibility = View.GONE
     }
 
     private fun sendTogglePumpRequest() {
-        if (isRequestInProgress) return
+        if (isRequestInProgress) {
+            Toast.makeText(this, "Подождите, команда выполняется...", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        // Определяем текущее состояние: насос включён, если текст кнопки "Выключить насос"
         val isPumpOn = pumpButton.text.toString() == "Выключить насос"
 
-        // Если насос выключен (текст "Включить насос") – это действие "включить"
-        if (!isPumpOn) {
-            // Проверяем задержку после последнего выключения
-            if (!canTurnOn()) {
-                // Если задержка активна – показываем оставшееся время и выходим
-                val remaining = cooldownSeconds - ((System.currentTimeMillis() - lastOffTime) / 1000).toInt()
-                if (remaining > 0) {
-                    timerText.visibility = android.view.View.VISIBLE
-                    timerText.text = "Подождите $remaining сек..."
-                }
-                return
+        // Если насос выключен - проверяем задержку
+        if (!isPumpOn && !canTurnOn()) {
+            val remaining = cooldownSeconds - ((System.currentTimeMillis() - lastOffTime) / 1000).toInt()
+            if (remaining > 0) {
+                timerText.visibility = View.VISIBLE
+                timerText.text = "Подождите $remaining сек..."
             }
+            return
         }
 
         isRequestInProgress = true
         pumpButton.isEnabled = false
+        progressBar.visibility = View.VISIBLE
 
         Thread {
             try {
@@ -197,36 +227,42 @@ class MainActivityParametr : AppCompatActivity() {
 
                     runOnUiThread {
                         updatePumpUI(newState)
-
-                        // Если насос только что выключили – запоминаем время и запускаем таймер
                         if (!newState) {
                             lastOffTime = System.currentTimeMillis()
                             startCountdown()
-                        } else {
-                            // Если включили – ничего не делаем с таймером
-                            // (можно сбросить, если нужно, но обычно после включения задержка не нужна)
                         }
+                        Toast.makeText(
+                            this@MainActivityParametr,
+                            if (newState) "Насос включен" else "Насос выключен",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 } else if (code == 429) {
-                    // Сервер вернул "слишком много запросов" – показываем задержку
                     val response = conn.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(response)
                     val waitTime = json.optInt("cooldown_remaining", cooldownSeconds)
                     runOnUiThread {
-                        timerText.visibility = android.view.View.VISIBLE
+                        timerText.visibility = View.VISIBLE
                         timerText.text = "Подождите $waitTime сек..."
                         startCountdown()
                     }
                 } else {
                     Log.e("Pump", "Error code: $code")
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivityParametr, "Ошибка: код $code", Toast.LENGTH_SHORT).show()
+                    }
                 }
                 conn.disconnect()
             } catch (e: Exception) {
-                Log.e("Pump", "Error: ${e.message}")
+                Log.e("Pump", "Error: ${e.message}", e)
+                runOnUiThread {
+                    Toast.makeText(this@MainActivityParametr, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             } finally {
                 runOnUiThread {
                     isRequestInProgress = false
                     pumpButton.isEnabled = true
+                    progressBar.visibility = View.GONE
                 }
             }
         }.start()
@@ -244,6 +280,7 @@ class MainActivityParametr : AppCompatActivity() {
                 if (conn.responseCode == 200) {
                     val response = conn.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(response)
+
                     val notifArray = json.getJSONArray("notifications")
                     for (i in 0 until notifArray.length()) {
                         val notif = notifArray.getJSONObject(i)
@@ -253,6 +290,8 @@ class MainActivityParametr : AppCompatActivity() {
                         runOnUiThread {
                             if (level == "critical") {
                                 NotificationHelper.sendNotification(this@MainActivityParametr, title, message)
+                            } else {
+                                Toast.makeText(this@MainActivityParametr, message, Toast.LENGTH_LONG).show()
                             }
                         }
                         Thread.sleep(1000)
@@ -260,16 +299,9 @@ class MainActivityParametr : AppCompatActivity() {
                 }
                 conn.disconnect()
             } catch (e: Exception) {
-                Log.e("Notifications", "Error: ${e.message}")
+                Log.e("Notifications", "Error: ${e.message}", e)
             }
         }.start()
-    }
-
-    private fun updateSensorValues(light: Int, soil: Int, temp: Double, humidity: Double) {
-        lightValueTv.text = "$light лк"
-        soilValueTv.text = "$soil%"
-        tempValueTv.text = if (temp.isNaN()) "--" else "%.1f °C".format(temp)
-        humidityValueTv.text = if (humidity.isNaN()) "--" else "%.1f%%".format(humidity)
     }
 
     private fun updatePumpUI(isOn: Boolean) {
